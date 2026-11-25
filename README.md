@@ -13,7 +13,7 @@ There are two front ends, and they share the same behaviour:
 
 - **`freenerf`** — the Python agent and Textual TUI in `src/freenerf/`, installed
   with `pip`. This is the reference implementation.
-- **The Android app** — Kotlin/Jetpack Compose UI over a Rust agent runtime in
+- **The Android app(beta)** — Kotlin/Jetpack Compose UI over a Rust agent runtime in
   `native/`, built with Gradle and packaged as an APK.
 
 ```
@@ -195,7 +195,7 @@ still applies). Without it, operations that need approval are denied and
 reported, so a script never silently performs destructive work.
 
 Exit codes: `0` completed, `2` partial/awaiting approval, `3` failed/blocked,
-`130` cancelled.
+/3w`130` cancelled.
 
 ## Keyboard shortcuts
 
@@ -400,6 +400,7 @@ Issues tab.
   needs All files access. SAF import/export still copies folders in and out
   rather than mounting them. SSH requires a reachable host and either a
   password or a private key.
+- The Android app is still in development, and its not the final product. Be patient for the final one.
 
 ## License
 
