@@ -19,7 +19,7 @@ the package was not installed editable. Run `pip install -e .` and check
 
 ## Provider problems
 
-**`Invalid or missing API key (HTTP 401)`** — open Settings (`Ctrl+P`) → API
+**`Invalid or missing API key (HTTP 401)`** — open Settings (`Ctrl+S`) → API
 Keys and confirm the key belongs to the selected provider. Environment variables
 override the config file; check `FREENERF_*_API_KEY`.
 
