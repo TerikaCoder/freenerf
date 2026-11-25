@@ -1,0 +1,17 @@
+[package]
+name = "freenerf-providers"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+freenerf-core = { workspace = true }
+async-trait = "0.1"
+serde = { workspace = true }
+serde_json = { workspace = true }
+reqwest = { workspace = true }
+futures-util = { workspace = true }
+uuid = { workspace = true }
+tokio = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }

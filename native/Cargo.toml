@@ -1,0 +1,52 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/freenerf-core",
+    "crates/freenerf-permissions",
+    "crates/freenerf-providers",
+    "crates/freenerf-workspace",
+    "crates/freenerf-sessions",
+    "crates/freenerf-tasks",
+    "crates/freenerf-storage",
+    "crates/freenerf-tools",
+    "crates/freenerf-agent",
+    "crates/freenerf-android",
+]
+
+[workspace.package]
+version = "0.3.0"
+edition = "2021"
+rust-version = "1.77"
+license = "MIT"
+
+[workspace.dependencies]
+freenerf-core = { path = "crates/freenerf-core" }
+freenerf-permissions = { path = "crates/freenerf-permissions" }
+freenerf-providers = { path = "crates/freenerf-providers" }
+freenerf-workspace = { path = "crates/freenerf-workspace" }
+freenerf-sessions = { path = "crates/freenerf-sessions" }
+freenerf-tasks = { path = "crates/freenerf-tasks" }
+freenerf-storage = { path = "crates/freenerf-storage" }
+freenerf-tools = { path = "crates/freenerf-tools" }
+freenerf-agent = { path = "crates/freenerf-agent" }
+
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "1"
+uuid = { version = "1", features = ["v4"] }
+libc = "0.2"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "sync"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "stream", "rustls-tls"] }
+futures-util = "0.3"
+rusqlite = { version = "0.32", features = ["bundled"] }
+regex = "1"
+walkdir = "2"
+base64 = "0.22"
+chrono = { version = "0.4", features = ["serde"] }
+url = "2"
+
+[profile.release]
+lto = false
+codegen-units = 4
+opt-level = "s"
+strip = true

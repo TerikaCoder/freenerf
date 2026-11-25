@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#F7FBF6" />
+  <title>Freenerf · Material You</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%232E7D4F'/%3E%3Cpath d='M18 22l10 10-10 10' fill='none' stroke='white' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M34 42h12' stroke='white' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..700&family=Roboto+Mono:wght@400;500&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..500,0..1,-50..0&display=block"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <div class="app">
+    <!-- Navigation rail: medium and larger windows -->
+    <nav class="nav-rail" aria-label="Primary">
+      <div class="nav-rail__brand" aria-hidden="true">
+        <span class="ms">terminal</span>
+      </div>
+      <button class="md-nav-item" data-screen="chat" aria-current="page">
+        <span class="md-nav-item__indicator"><span class="ms" aria-hidden="true">forum</span></span>
+        <span class="md-nav-item__label">Chat</span>
+      </button>
+      <button class="md-nav-item" data-screen="sessions">
+        <span class="md-nav-item__indicator"><span class="ms" aria-hidden="true">history</span></span>
+        <span class="md-nav-item__label">Sessions</span>
+      </button>
+      <button class="md-nav-item" data-screen="settings">
+        <span class="md-nav-item__indicator"><span class="ms" aria-hidden="true">tune</span></span>
+        <span class="md-nav-item__label">Settings</span>
+      </button>
+      <span class="nav-rail__spacer"></span>
+      <button class="md-icon-btn md-icon-btn--tonal" id="rail-theme" aria-label="Switch to dark theme">
+        <span class="ms" aria-hidden="true">dark_mode</span>
+      </button>
+    </nav>
+
+    <main class="main" id="main">
+      <!-- CHAT -->
+      <section class="screen screen--chat" id="screen-chat" aria-labelledby="chat-title">
+        <header class="top-bar" id="chat-bar">
+          <div class="top-bar__row">
+            <div class="top-bar__titles">
+              <h1 class="top-bar__title md-title-large" id="chat-title">Fix the failing parser test</h1>
+              <p class="top-bar__sub md-label-medium" id="chat-sub">
+                <span class="status-dot" aria-hidden="true"></span>
+                <span id="chat-sub-text">Responding · projects/api</span>
+              </p>
+            </div>
+            <button class="md-icon-btn" data-go="sessions" aria-label="Session history">
+              <span class="ms" aria-hidden="true">history</span>
+            </button>
+            <button class="md-icon-btn" id="chat-menu-btn" aria-label="Session actions" aria-haspopup="menu">
+              <span class="ms" aria-hidden="true">more_vert</span>
+            </button>
+          </div>
+        </header>
+
+        <div class="chat-scroll" id="chat-scroll">
+          <div class="screen__inner chat-thread" id="chat-thread" aria-live="polite"></div>
+        </div>
+
+        <div class="composer">
+          <div class="composer__meta screen__inner">
+            <span class="md-label-small" id="usage">in 8 412 · out 1 905 · total 10 317</span>
+            <span class="md-label-small composer__mode">NORMAL</span>
+          </div>
+          <div class="composer__inner screen__inner">
+            <div class="composer__field">
+              <button class="md-icon-btn" id="attach-btn" aria-label="Attach file">
+                <span class="ms" aria-hidden="true">attach_file</span>
+              </button>
+              <label class="sr-only" for="prompt">Describe a task</label>
+              <textarea id="prompt" rows="1" placeholder="Describe a task…" autocomplete="off"></textarea>
+              <button class="md-fab md-fab--small" id="send-btn" aria-label="Send">
+                <span class="ms" aria-hidden="true">arrow_upward</span>
+              </button>
+              <button class="md-fab md-fab--small md-fab--tonal" id="stop-btn" aria-label="Stop" hidden>
+                <span class="ms" aria-hidden="true">stop</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SESSIONS -->
+      <section class="screen screen--sessions" id="screen-sessions" aria-labelledby="sessions-title" hidden>
+        <header class="top-bar top-bar--large" id="sessions-bar">
+          <div class="top-bar__row">
+            <h1 class="top-bar__large" id="sessions-title">Sessions</h1>
+            <button class="md-icon-btn" id="search-toggle" aria-label="Search sessions" aria-expanded="false">
+              <span class="ms" aria-hidden="true">search</span>
+            </button>
+          </div>
+          <div class="sessions-search screen__inner" id="sessions-search" hidden>
+            <div class="md-field md-field--filled md-field--search">
+              <span class="ms md-field__leading" aria-hidden="true">search</span>
+              <input id="session-search" type="search" placeholder="Search sessions" aria-label="Search sessions" />
+            </div>
+          </div>
+          <div class="sessions-meta screen__inner">
+            <span class="md-label-large sessions-count" id="sessions-count">5 sessions</span>
+            <div class="md-chip-set" role="group" aria-label="Filter sessions">
+              <button class="md-chip md-chip--filter" data-filter="all" aria-pressed="true">
+                <span class="ms" aria-hidden="true">check</span>All
+              </button>
+              <button class="md-chip md-chip--filter" data-filter="open" aria-pressed="false">
+                <span class="ms" aria-hidden="true">progress_activity</span>Open
+              </button>
+              <button class="md-chip md-chip--filter" data-filter="closed" aria-pressed="false">
+                <span class="ms" aria-hidden="true">archive</span>Closed
+              </button>
+            </div>
+          </div>
+        </header>
+        <div class="screen__scroll" id="sessions-scroll">
+          <div class="screen__inner session-list" id="session-list"></div>
+          <p class="screen__inner sessions-empty md-body-medium" id="sessions-empty" hidden>
+            No sessions match this filter.
+          </p>
+        </div>
+        <button class="md-fab md-fab--extended screen__fab" id="new-session">
+          <span class="ms" aria-hidden="true">add</span>New session
+        </button>
+      </section>
+
+      <!-- SETTINGS -->
+      <section class="screen screen--settings" id="screen-settings" aria-labelledby="settings-title" hidden>
+        <header class="top-bar top-bar--settings" id="settings-bar">
+          <div class="top-bar__row">
+            <h1 class="top-bar__title md-title-large" id="settings-title">Settings</h1>
+            <button class="md-icon-btn" id="settings-about" aria-label="About Freenerf">
+              <span class="ms" aria-hidden="true">info</span>
+            </button>
+          </div>
+          <div class="md-tabs" role="tablist" aria-label="Settings sections">
+            <button class="md-tab" role="tab" id="tab-general" aria-controls="panel-general" aria-selected="true" data-tab="general">General</button>
+            <button class="md-tab" role="tab" id="tab-appearance" aria-controls="panel-appearance" aria-selected="false" tabindex="-1" data-tab="appearance">Appearance</button>
+            <button class="md-tab" role="tab" id="tab-providers" aria-controls="panel-providers" aria-selected="false" tabindex="-1" data-tab="providers">Providers</button>
+            <button class="md-tab" role="tab" id="tab-models" aria-controls="panel-models" aria-selected="false" tabindex="-1" data-tab="models">Models</button>
+            <button class="md-tab" role="tab" id="tab-permissions" aria-controls="panel-permissions" aria-selected="false" tabindex="-1" data-tab="permissions">Permissions</button>
+            <button class="md-tab" role="tab" id="tab-about" aria-controls="panel-about" aria-selected="false" tabindex="-1" data-tab="about">About</button>
+          </div>
+        </header>
+
+        <div class="screen__scroll" id="settings-scroll">
+          <div class="screen__inner settings-panels" id="settings-panels">
+            <!-- General -->
+            <section class="settings-panel" id="panel-general" role="tabpanel" aria-labelledby="tab-general" data-panel="general">
+              <div class="settings-group">
+                <h2 class="settings-group__title md-label-large">Provider</h2>
+                <div class="md-list-item md-list-item--two-line">
+                  <span class="md-list-item__icon ms" aria-hidden="true">smart_toy</span>
+                  <span class="md-list-item__text">
+                    <span class="md-list-item__headline md-body-large">OpenRouter</span>
+                    <span class="md-list-item__support md-body-medium">openai/gpt-4o-mini · streaming on</span>
+                  </span>
+                  <span class="md-list-item__trailing md-label-large">Change</span>
+                </div>
+                <div class="md-divider"></div>
+                <div class="md-list-item md-list-item--two-line">
+                  <span class="md-list-item__icon ms" aria-hidden="true">shield</span>
+                  <span class="md-list-item__text">
+                    <span class="md-list-item__headline md-body-large">Permission mode</span>
+                    <span class="md-list-item__support md-body-medium">NORMAL · writes and shell commands ask first</span>
+                  </span>
+                  <span class="md-list-item__trailing md-label-large">Normal</span>
+                </div>
+                <div class="md-divider"></div>
+                <div class="md-list-item md-list-item--two-line">
+                  <span class="md-list-item__icon ms" aria-hidden="true">folder_open</span>
+                  <span class="md-list-item__text">
+                    <span class="md-list-item__headline md-body-large">Workspace</span>
+                    <span class="md-list-item__support md-body-medium">projects/api · the only directory the agent may edit</span>
+                  </span>
+                  <span class="md-list-item__trailing md-label-large">Change</span>
+                </div>
+              </div>
+
+              <div class="settings-group">
+                <h2 class="settings-group__title md-label-large">Behaviour</h2>
+                <label class="md-list-item md-list-item--two-line">
+                  <span class="md-list-item__text">
+                    <span class="md-list-item__headline md-body-large">Stream replies</span>
+                    <span class="md-list-item__support md-body-medium">Show tokens as the agent writes</span>
+                  </span>
+                  <span class="md-switch"><input type="checkbox" checked /><span class="md-switch__track"></span></span>
+                </label>
+                <div class="md-divider"></div>
+                <label class="md-list-item md-list-item--two-line">
+                  <span class="md-list-item__text">
+                    <span class="md-list-item__headline md-body-large">Verify changes</span>
+                    <span class="md-list-item__support md-body-medium">Run the project's checks before finishing</span>
+                  </span>
+                  <span class="md-switch"><input type="checkbox" checked /><span class="md-switch__track"></span></span>
+                </label>
+                <div class="md-divider"></div>
+                <label class="md-list-item md-list-item--two-line">
+                  <span class="md-list-item__text">
+                    <span class="md-list-item__headline md-body-large">Confirm destructive actions</span>
+                    <span class="md-list-item__support md-body-medium">Always ask before delete, overwrite or shell</span>
+                  </span>
+                  <span class="md-switch"><input type="checkbox" /><span class="md-switch__track"></span></span>
+                </label>
+              </div>
+
+              <div class="settings-note md-body-medium">
+                Settings are stored per device. Sessions, tasks and backups stay inside the workspace.
+              </div>
+            </section>
+
+            <!-- Appearance / Theme Studio -->
+            <section class="settings-panel" id="panel-appearance" role="tabpanel" aria-labelledby="tab-appearance" data-panel="appearance" hidden>
+              <div class="settings-group">
+                <h2 class="settings-group__title md-label-large">Theme Studio</h2>
+                <div class="settings-row">
+                  <span class="settings-row__label md-body-large">Theme mode</span>
+                  <div class="md-segmented" role="group" aria-label="Theme mode">
+                    <button class="md-segmented__item" data-mode="system" aria-pressed="true">System</button>
+                    <button class="md-segmented__item" data-mode="light" aria-pressed="false">Light</button>
+                    <button class="md-segmented__item" data-mode="dark" aria-pressed="false">Dark</button>
+                  </div>
+                </div>
+                <div class="md-divider"></div>
+                <div class="settings-row">
+                  <span class="settings-row__label md-body-large">Contrast</span>
+                  <div class="md-segmented" role="group" aria-label="Contrast level">
+                    <button class="md-segmented__item" data-contrast="standard" aria-pressed="true">Standard</button>
+                    <button class="md-segmented__item" data-contrast="medium" aria-pressed="false">Medium</button>
+                    <button class="md-segmented__item" data-contrast="high" aria-pressed="false">High</button>
+                  </div>
+                </div>
+                <div class="md-divider"></div>
+                <label class="md-list-item md-list-item--two-line">
+                  <span class="md-list-item__text">
+                    <span class="md-list-item__headline md-body-large">AMOLED black</span>
+                    <span class="md-list-item__support md-body-medium">Pure black surfaces in the dark theme</span>
+                  </span>
+                  <span class="md-switch"><input type="checkbox" id="amoled-switch" /><span class="md-switch__track"></span></span>
+                </label>
+              </div>
+
+              <div class="settings-group">
+                <h2 class="settings-group__title md-label-large">Accent seed</h2>
+                <div class="accent-block">
+                  <div class="accent-row" role="group" aria-label="Accent seed">
+                    <button class="accent-swatch" data-seed="verdant" style="--swatch:#2E7D4F" aria-label="Verdant" aria-pressed="true"></button>
+                    <button class="accent-swatch" data-seed="violet" style="--swatch:#6750A4" aria-label="Violet" aria-pressed="false"></button>
+                    <button class="accent-swatch" data-seed="ocean" style="--swatch:#00658F" aria-label="Ocean" aria-pressed="false"></button>
+                    <button class="accent-swatch" data-seed="amber" style="--swatch:#7A5900" aria-label="Amber" aria-pressed="false"></button>
+                    <button class="accent-swatch" data-seed="rose" style="--swatch:#984061" aria-label="Rose" aria-pressed="false"></button>
+                    <button class="accent-swatch" data-seed="graphite" style="--swatch:#46525C" aria-label="Graphite" aria-pressed="false"></button>
+                  </div>
+                  <div class="custom-accent">
+                    <label class="md-field md-field--outlined">
+                      <input id="custom-hex" type="text" placeholder=" " maxlength="7" spellcheck="false" autocomplete="off" />
+                      <span class="md-field__label">Custom accent · #RRGGBB</span>
+                    </label>
+                    <button class="md-outlined-btn" id="apply-hex">Apply</button>
+                  </div>
+                  <p class="settings-hint md-body-small" id="accent-status">
+                    Dynamic color derives every role from the seed — primary, secondary, tertiary, neutral and error.
+                  </p>
+                </div>
+              </div>
+
+              <div class="settings-group">
+                <h2 class="settings-group__title md-label-large">Palette</h2>
+                <div class="palette-grid" id="palette-grid">
+                  <div class="palette-swatch" style="background:var(--md-sys-color-primary);color:var(--md-sys-color-on-primary)">primary</div>
+                  <div class="palette-swatch" style="background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container)">primary-container</div>
+                  <div class="palette-swatch" style="background:var(--md-sys-color-secondary-container);color:var(--md-sys-color-on-secondary-container)">secondary-container</div>
+                  <div class="palette-swatch" style="background:var(--md-sys-color-tertiary-container);color:var(--md-sys-color-on-tertiary-container)">tertiary-container</div>
+                  <div class="palette-swatch" style="background:var(--md-sys-color-surface-container-high);color:var(--md-sys-color-on-surface)">surface-container-high</div>
+                  <div class="palette-swatch" style="background:var(--md-sys-color-surface-container-highest);color:var(--md-sys-color-on-surface-variant)">surface-container-highest</div>
+                  <div class="palette-swatch" style="background:var(--md-sys-color-error-container);color:var(--md-sys-color-on-error-container)">error-container</div>
+                  <div class="palette-swatch" style="background:var(--md-sys-color-inverse-surface);color:var(--md-sys-color-inverse-on-surface)">inverse-surface</div>
+                </div>
+              </div>
+
+              <div class="settings-group">
+                <h2 class="settings-group__title md-label-large">Type &amp; shape</h2>
+                <div class="type-specimen">
+                  <p class="md-headline-small">Headline small</p>
+                  <p class="md-title-large md-type-emphasized">Title large</p>
+                  <p class="md-body-large">Body large — the agent's answers render as document text, long enough to stay readable at a measured line length.</p>
+                  <p class="md-label-large">LABEL LARGE</p>
+                  <div class="shape-row" aria-hidden="true">
+                    <span class="shape-chip"></span>
+                    <span class="shape-chip shape-chip--medium"></span>
+                    <span class="shape-chip shape-chip--large"></span>
+                    <span class="shape-chip shape-chip--xl"></span>
+                    <span class="shape-chip shape-chip--full"></span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Providers -->
+            <section class="settings-panel" id="panel-providers" role="tabpanel" aria-labelledby="tab-providers" data-panel="providers" hidden>
+              <div class="settings-group">
+                <h2 class="settings-group__title md-label-large">API keys</h2>
+                <div class="md-list-item md-list-item--two-line">
+                  <span class="md-list-item__icon ms" aria-hidden="true">smart_toy</span>
+                  <span class="md-list-item__text">
+                    <span class="md-list-item__headline md-body-large">OpenRouter</span>
+                    <span class="md-list-item__support md-body-medium">openrouter.ai/api/v1 · key stored in the Android Keystore</span>
+                  </span>
+                  <span class="md-chip md-chip--assist"><span class="ms" aria-hidden="true">check</span>Configured</span>
+                </div>
+                <div class="md-divider"></div>
+                <div class="md-list-item md-list-item--two-line">
+                  <span class="md-list-item__icon ms" aria-hidden="true">auto_awesome</span>
+                  <span class="md-list-item__text">
+                    <span class="md-list-item__headline md-body-large">Google Gemini</span>
+                    <span class="md-list-item__support md-body-medium">generativelanguage.googleapis.com</span>
+                  </span>
+                  <span class="md-chip md-chip--assist" data-add-key="Gemini"><span class="ms" aria-hidden="true">add</span>Add key</span>
+                </div>
+                <div class="md-divider"></div>
+                <div class="md-list-item md-list-item--two-line">
+                  <span class="md-list-item__icon ms" aria-hidden="true">bolt</span>
+                  <span class="md-list-item__text">
+                    <span class="md-list-item__headline md-body-large">FreeLLMAPI</span>
+                    <span class="md-list-item__support md-body-medium">freellmapi.com/v1 · also powers image generation</span>
+                  </span>
+                  <span class="md-chip md-chip--assist" data-add-key="FreeLLMAPI"><span class="ms" aria-hidden="true">add</span>Add key</span>
+                </div>
+                <div class="md-divider"></div>
+                <div class="md-list-item md-list-item--two-line">
+                  <span class="md-list-item__icon ms" aria-hidden="true">code</span>
+                  <span class="md-list-item__text">
+                    <span class="md-list-item__headline md-body-large">OpenAI-compatible</span>
+                    <span class="md-list-item__support md-body-medium">Any endpoint that speaks the chat completions API</span>
+                  </span>
+                  <span class="md-chip md-chip--assist" data-add-key="OpenAI-compatible"><span class="ms" aria-hidden="true">add</span>Base URL</span>
+                </div>
+              </div>
+              <div class="settings-note md-body-medium">
+                Keys never reach the UI layer after entry. DENIED, NORMAL and FULL are enforced below the interface, at the tool-execution boundary.
+              </div>
+            </section>
+
+            <!-- Models -->
+            <section class="settings-panel" id="panel-models" role="tabpanel" aria-labelledby="tab-models" data-panel="models" hidden>
+              <div class="settings-group">
+                <h2 class="settings-group__title md-label-large">OpenRouter catalog</h2>
+                <label class="md-list-item md-list-item--two-line model-option">
+                  <input type="radio" name="model" value="openai/gpt-4o-mini" checked />
+                  <span class="md-radio" aria-hidden="true"></span>
+                  <span class="md-list-item__text">
+                    <span class="md-list-item__headline md-body-large">openai/gpt-4o-mini</span>
+                    <span class="md-list-item__support md-body-medium">Fast · tool calling · streaming</span>
+                  </span>
+                </label>
+                <div class="md-divider"></div>
+                <label class="md-list-item md-list-item--two-line model-option">
+                  <input type="radio" name="model" value="deepseek/deepseek-chat" />
+                  <span class="md-radio" aria-hidden="true"></span>
+                  <span class="md-list-item__text">
+                    <span class="md-list-item__headline md-body-large">deepseek/deepseek-chat</span>
+                    <span class="md-list-item__support md-body-medium">Long context · economical</span>
+                  </span>
+                </label>
+                <div class="md-divider"></div>
+                <label class="md-list-item md-list-item--two-line model-option">
+                  <input type="radio" name="model" value="google/gemini-2.5-flash" />
+                  <span class="md-radio" aria-hidden="true"></span>
+                  <span class="md-list-item__text">
+                    <span class="md-list-item__headline md-body-large">google/gemini-2.5-flash</span>
+                    <span class="md-list-item__support md-body-medium">Multimodal · image understanding</span>
+                  </span>
+                </label>
+                <div class="md-divider"></div>
+                <label class="md-list-item md-list-item--two-line model-option">
+                  <input type="radio" name="model" value="qwen/qwen3-coder" />
+                  <span class="md-radio" aria-hidden="true"></span>
+                  <span class="md-list-item__text">
+                    <span class="md-list-item__headline md-body-large">qwen/qwen3-coder</span>
+                    <span class="md-list-item__support md-body-medium">Code-tuned · large context</span>
+                  </span>
+                </label>
+              </div>
+              <div class="settings-note md-body-medium" id="model-note">
+                Current model: openai/gpt-4o-mini. The catalog loads live from the active provider.
+              </div>
+            </section>
+
+            <!-- Permissions -->
+            <section class="settings-panel" id="panel-permissions" role="tabpanel" aria-labelledby="tab-permissions" data-panel="permissions" hidden>
+              <div class="settings-group">
+                <h2 class="settings-group__title md-label-large">Permission mode</h2>
+                <label class="md-list-item md-list-item--two-line model-option">
+                  <input type="radio" name="permission" value="DENIED" />
+                  <span class="md-radio" aria-hidden="true"></span>
+                  <span class="md-list-item__text">
+                    <span class="md-list-item__headline md-body-large">DENIED</span>
+                    <span class="md-list-item__support md-body-medium">Reads only. Every write, shell command and network call is refused.</span>
+                  </span>
+                </label>
+                <div class="md-divider"></div>
+                <label class="md-list-item md-list-item--two-line model-option">
+                  <input type="radio" name="permission" value="NORMAL" checked />
+                  <span class="md-radio" aria-hidden="true"></span>
+                  <span class="md-list-item__text">
+                    <span class="md-list-item__headline md-body-large">NORMAL</span>
+                    <span class="md-list-item__support md-body-medium">Writes and commands ask for approval in a dialog.</span>
+                  </span>
+                </label>
+                <div class="md-divider"></div>
+                <label class="md-list-item md-list-item--two-line model-option">
+                  <input type="radio" name="permission" value="FULL" />
+                  <span class="md-radio" aria-hidden="true"></span>
+                  <span class="md-list-item__text">
+                    <span class="md-list-item__headline md-body-large">FULL</span>
+                    <span class="md-list-item__support md-body-medium">Minimum friction, still checked by the hard safety layer.</span>
+                  </span>
+                </label>
+              </div>
+              <div class="settings-note md-body-medium">
+                The policy is enforced where tools execute, not in the interface, so a model cannot talk its way past it.
+              </div>
+            </section>
+
+            <!-- About -->
+            <section class="settings-panel" id="panel-about" role="tabpanel" aria-labelledby="tab-about" data-panel="about" hidden>
+              <div class="about-hero">
+                <span class="about-mark ms" aria-hidden="true">terminal</span>
+                <div>
+                  <h2 class="md-headline-small">Freenerf</h2>
+                  <p class="md-body-medium">An autonomous coding agent that plans, acts, verifies and reports honestly.</p>
+                </div>
+              </div>
+              <div class="settings-group">
+                <div class="md-list-item md-list-item--two-line">
+                  <span class="md-list-item__text">
+                    <span class="md-list-item__headline md-body-large">Version</span>
+                    <span class="md-list-item__support md-body-medium">1.0.0 · Material You shell</span>
+                  </span>
+                </div>
+                <div class="md-divider"></div>
+                <div class="md-list-item md-list-item--two-line">
+                  <span class="md-list-item__text">
+                    <span class="md-list-item__headline md-body-large">Runtime</span>
+                    <span class="md-list-item__support md-body-medium">Rust agent core · 22 tools · 4 providers</span>
+                  </span>
+                </div>
+                <div class="md-divider"></div>
+                <div class="md-list-item md-list-item--two-line">
+                  <span class="md-list-item__text">
+                    <span class="md-list-item__headline md-body-large">Design system</span>
+                    <span class="md-list-item__support md-body-medium">Material Design 3 · Roboto Flex · tonal surfaces</span>
+                  </span>
+                </div>
+              </div>
+              <div class="settings-note md-body-medium">
+                The workspace is the boundary. Files, backups and sessions stay inside it; nothing is edited outside without an explicit import.
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Supporting pane: expanded windows only -->
+    <aside class="support-pane" aria-label="Task details">
+      <section class="md-card md-card--filled plan-card">
+        <div class="plan-card__head">
+          <h2 class="md-title-medium">Plan</h2>
+          <span class="md-label-medium plan-card__count">3 of 5</span>
+        </div>
+        <div class="md-linear-progress" role="progressbar" aria-valuemin="0" aria-valuemax="5" aria-valuenow="3">
+          <div class="md-linear-progress__bar" style="width:60%"></div>
+        </div>
+        <ol class="plan-list">
+          <li class="plan-step is-done"><span class="ms" aria-hidden="true">check</span>Inspect the parser</li>
+          <li class="plan-step is-done"><span class="ms" aria-hidden="true">check</span>Reproduce the failure</li>
+          <li class="plan-step is-done"><span class="ms" aria-hidden="true">check</span>Patch the array branch</li>
+          <li class="plan-step is-active"><span class="ms" aria-hidden="true">progress_activity</span>Run the test suite</li>
+          <li class="plan-step"><span class="ms" aria-hidden="true">radio_button_unchecked</span>Summarize the change</li>
+        </ol>
+      </section>
+
+      <section class="activity-card">
+        <h2 class="md-title-small">Activity</h2>
+        <ul class="activity-list">
+          <li><span class="ms is-done" aria-hidden="true">check_circle</span><span class="activity-name">run_tests</span><span class="activity-time">4.2 s</span></li>
+          <li><span class="ms is-done" aria-hidden="true">check_circle</span><span class="activity-name">read_file</span><span class="activity-time">0.3 s</span></li>
+          <li><span class="ms is-done" aria-hidden="true">check_circle</span><span class="activity-name">edit_file</span><span class="activity-time">0.2 s</span></li>
+          <li><span class="ms is-waiting" aria-hidden="true">pending</span><span class="activity-name">run_shell</span><span class="activity-time">waiting</span></li>
+        </ul>
+      </section>
+      <p class="support-note md-body-small">Tool results are checked below the UI. Destructive actions stop at the permission broker until you answer.</p>
+    </aside>
+
+    <!-- Navigation bar: compact windows -->
+    <nav class="bottom-bar" aria-label="Primary">
+      <button class="md-nav-bar-item" data-screen="chat" aria-current="page">
+        <span class="md-nav-bar-item__indicator"><span class="ms" aria-hidden="true">forum</span></span>
+        <span class="md-nav-bar-item__label">Chat</span>
+      </button>
+      <button class="md-nav-bar-item" data-screen="sessions">
+        <span class="md-nav-bar-item__indicator"><span class="ms" aria-hidden="true">history</span></span>
+        <span class="md-nav-bar-item__label">Sessions</span>
+      </button>
+      <button class="md-nav-bar-item" data-screen="settings">
+        <span class="md-nav-bar-item__indicator"><span class="ms" aria-hidden="true">tune</span></span>
+        <span class="md-nav-bar-item__label">Settings</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- Approval dialog -->
+  <dialog id="approval-dialog" class="md-dialog md-dialog--approval" aria-labelledby="approval-title">
+    <form method="dialog" class="md-dialog__form">
+      <span class="md-dialog__icon ms" aria-hidden="true">shield</span>
+      <h2 class="md-headline-small" id="approval-title">Allow run_shell?</h2>
+      <p class="md-body-medium">This command changes the repository state in <b>projects/api</b>.</p>
+      <pre class="md-dialog__code">git pull --rebase</pre>
+      <p class="md-label-medium md-dialog__policy">Policy: NORMAL · writes and shell commands ask first</p>
+      <div class="md-dialog__actions">
+        <button class="md-text-btn" value="deny">Deny</button>
+        <button class="md-filled-btn" value="allow" autofocus>Allow</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Rename dialog -->
+  <dialog id="rename-dialog" class="md-dialog" aria-labelledby="rename-title">
+    <form method="dialog" class="md-dialog__form" id="rename-form">
+      <h2 class="md-headline-small" id="rename-title">Rename session</h2>
+      <label class="md-field md-field--outlined md-dialog__field">
+        <input id="rename-input" type="text" placeholder=" " maxlength="80" autocomplete="off" />
+        <span class="md-field__label">Session title</span>
+      </label>
+      <div class="md-dialog__actions">
+        <button class="md-text-btn" value="cancel">Cancel</button>
+        <button class="md-filled-btn" value="save">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="md-menu" id="session-menu" role="menu" hidden></div>
+  <div class="md-snackbar" id="snackbar" role="status" aria-live="polite"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

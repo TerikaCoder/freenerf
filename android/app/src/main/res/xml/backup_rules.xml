@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- The encrypted key ciphertext is useless without the Keystore key, and
+         restoring it alone would produce unreadable credentials. -->
+    <exclude domain="sharedpref" path="freenerf_secrets.xml" />
+</full-backup-content>

@@ -1,0 +1,42 @@
+.env
+.env.*
+!.env.example
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+.coverage
+htmlcov/
+
+# Freenerf workspace data (sessions, tasks, images, backups)
+.freenerf/
+keepalive.log
+
+# Generated backups and patch artifacts
+*.bak
+*.bak.*
+*.orig
+*.old
+backups/
+.freenerf
+.patch-backup
+
+# Android build output and machine-specific configuration
+android/.gradle/
+android/build/
+android/app/build/
+android/.kotlin/
+android/local.properties
+android/app/src/main/jniLibs/
+android/app/.cxx/
+
+# Rust build artifacts
+native/target/
+.buildlogs/
+
+# Built APKs (rebuild with android/gradlew assembleDebug)
+artifacts/

@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Freenerf · Android UI mockup</title>
+<style>
+  :root{
+    --primary:#2E7D4F; --on-primary:#ffffff;
+    --primary-container:#D5E5DC; --on-primary-container:#0E2618;
+    --secondary:#52634F; --secondary-container:#D6E8D3; --on-secondary-container:#0F1F13;
+    --tertiary:#3F6B5A; --tertiary-container:#D9E4DF; --on-tertiary-container:#12251E;
+    --surface:#FFFFFF; --surface-low:#F3F8F1; --surface-container:#EDF3EC;
+    --surface-high:#E7EEE6; --surface-highest:#E1E9E1;
+    --on-surface:#171D19; --on-surface-variant:#44514A;
+    --outline:#748079; --outline-variant:#C8D2CA;
+    --error:#B3261E; --error-container:#F9DEDC; --on-error-container:#410E0B;
+    --bg:#EEF2EC;
+  }
+  *{box-sizing:border-box; -webkit-font-smoothing:antialiased}
+  html,body{margin:0}
+  body{
+    background:
+      radial-gradient(1100px 520px at 12% -8%, #DCE9DD 0%, transparent 60%),
+      radial-gradient(900px 500px at 92% 4%, #DCE6EA 0%, transparent 55%),
+      var(--bg);
+    color:var(--on-surface);
+    font-family:"Roboto","Roboto Flex","Google Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+    padding:40px 28px 64px;
+  }
+  header.page{max-width:1960px;margin:0 auto 30px}
+  header.page h1{font-size:30px;font-weight:600;letter-spacing:-.3px;margin:0 0 6px}
+  header.page p{margin:0;color:var(--on-surface-variant);font-size:15px;max-width:940px;line-height:1.55}
+  .legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+  .pill{font-size:12px;font-weight:500;padding:7px 13px;border-radius:100px;background:#fff;border:1px solid var(--outline-variant);color:var(--on-surface-variant)}
+  .pill b{color:var(--on-surface);font-weight:600}
+
+  .stage{display:flex;gap:34px;align-items:flex-start;justify-content:center;flex-wrap:wrap;max-width:1960px;margin:0 auto}
+  .slot{display:flex;flex-direction:column;gap:12px;align-items:center}
+  .slot > .caption{font-size:13px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:#5C6B61}
+  .slot > .note{font-size:12.5px;color:#67766C;max-width:366px;text-align:center;line-height:1.45;margin-top:-4px}
+
+  .phone{
+    width:380px;height:812px;border-radius:46px;padding:10px;background:#0E1512;
+    box-shadow:0 28px 60px -18px rgba(18,32,24,.45), 0 4px 14px rgba(18,32,24,.16);
+    position:relative;flex:0 0 auto;
+  }
+  .screen{
+    width:100%;height:100%;border-radius:37px;overflow:hidden;background:var(--surface);
+    display:flex;flex-direction:column;position:relative;
+  }
+  .statusbar{
+    height:34px;display:flex;align-items:center;justify-content:space-between;
+    padding:0 22px;font-size:12px;font-weight:600;color:var(--on-surface);flex:0 0 auto;
+  }
+  .statusbar .icons{display:flex;gap:5px;align-items:center;opacity:.9}
+  .statusbar svg{width:13px;height:13px}
+
+  /* top app bar */
+  .appbar{display:flex;align-items:center;gap:8px;padding:8px 8px 8px 16px;flex:0 0 auto}
+  .appbar .titles{flex:1;min-width:0}
+  .appbar h2{margin:0;font-size:20px;font-weight:500;letter-spacing:0;line-height:1.25;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .appbar .sub{margin:2px 0 0;font-size:11.5px;color:var(--on-surface-variant);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:5px}
+  .appbar .sub .dot{width:5px;height:5px;border-radius:50%;background:var(--primary)}
+  .ibtn{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:var(--on-surface-variant);flex:0 0 auto}
+  .ibtn.primary{color:var(--primary)}
+  .ibtn svg{width:21px;height:21px}
+  .large-head{padding:10px 22px 6px}
+  .large-head h2{margin:0;font-size:30px;font-weight:600;letter-spacing:-.2px}
+
+  /* chat body */
+  .body{flex:1;overflow:hidden;padding:6px 16px 0;display:flex;flex-direction:column;gap:13px}
+  .prompt{background:var(--surface-high);border-radius:22px;padding:12px 16px 14px}
+  .prompt .label{font-size:10.5px;font-weight:700;letter-spacing:.9px;color:var(--primary);margin-bottom:5px}
+  .prompt p{margin:0;font-size:14.5px;line-height:1.5}
+  .agent{font-size:14.5px;line-height:1.55;color:var(--on-surface)}
+  .agent p{margin:0 0 10px}
+  .agent p:last-child{margin-bottom:0}
+  .agent code{font-family:"Roboto Mono",ui-monospace,Menlo,monospace;font-size:13px;
+    background:var(--surface-container);padding:1.5px 5px;border-radius:6px}
+  .code{background:var(--surface-low);border:1px solid var(--surface-highest);border-radius:16px;
+    padding:12px 14px;font-family:"Roboto Mono",ui-monospace,Menlo,monospace;font-size:12px;line-height:1.6;
+    color:#243029;overflow:hidden}
+  .code .k{color:#7A4E9B}.code .s{color:#2E7D4F}.code .c{color:#7C8A80}
+
+  .tool{background:var(--surface-low);border-radius:20px;padding:10px 12px}
+  .tool .head{display:flex;align-items:center;gap:10px}
+  .tool .ico{width:26px;height:26px;border-radius:9px;background:var(--surface-highest);display:grid;place-items:center;flex:0 0 auto}
+  .tool .ico svg{width:15px;height:15px}
+  .tool .ico.done{color:var(--primary)}
+  .tool .ico.fail{color:var(--error)}
+  .tool .name{flex:1;font-family:"Roboto Mono",ui-monospace,monospace;font-size:12.5px;font-weight:500;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tool .time{font-size:11px;color:var(--on-surface-variant)}
+  .tool .summary{margin:6px 0 0;font-size:12px;line-height:1.45;color:var(--on-surface-variant);
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .tool .chev{color:var(--on-surface-variant);display:grid;place-items:center}
+  .tool .chev svg{width:18px;height:18px}
+
+  .statusline{display:flex;align-items:center;gap:9px;font-size:11.5px;color:var(--primary);
+    background:var(--primary-container);color:var(--on-primary-container);
+    border-radius:100px;padding:6px 12px;align-self:flex-start}
+  .spinner{width:12px;height:12px;border-radius:50%;border:2px solid var(--primary);border-right-color:transparent;
+    animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* composer */
+  .composer{flex:0 0 auto;padding:8px 12px 10px;background:var(--surface)}
+  .usage{font-size:10.5px;color:var(--on-surface-variant);padding:0 8px 6px}
+  .fieldbox{display:flex;align-items:flex-end;gap:4px;background:var(--surface-high);border-radius:28px;padding:5px}
+  .fieldbox .placeholder{flex:1;font-size:14px;color:#5F6C64;padding:12px 2px 12px 4px}
+  .textarea-mock{flex:1;padding:10px 4px 10px 4px;font-size:14px;line-height:1.45;color:var(--on-surface)}
+  .fab-mini{width:44px;height:44px;border-radius:50%;background:var(--primary);color:#fff;display:grid;place-items:center;flex:0 0 auto}
+  .fab-mini.tonal{background:var(--secondary-container);color:var(--on-secondary-container)}
+  .fab-mini svg{width:20px;height:20px}
+  .ibtn.round{width:44px;height:44px}
+
+  /* nav bar */
+  .navbar{flex:0 0 auto;display:flex;justify-content:space-around;align-items:center;
+    padding:8px 8px 10px;background:var(--surface-container);border-top:1px solid rgba(0,0,0,.04)}
+  .navitem{display:flex;flex-direction:column;align-items:center;gap:4px;width:88px;color:var(--on-surface-variant)}
+  .navitem .ind{width:58px;height:30px;border-radius:16px;display:grid;place-items:center}
+  .navitem.on .ind{background:var(--secondary-container);color:var(--on-secondary-container)}
+  .navitem svg{width:21px;height:21px}
+  .navitem span{font-size:11.5px;font-weight:500}
+  .navitem.on span{color:var(--on-surface);font-weight:600}
+  .gesturebar{height:20px;display:grid;place-items:center;background:var(--surface-container);flex:0 0 auto}
+  .gesturebar i{display:block;width:110px;height:4px;border-radius:4px;background:#BFC9C1}
+
+  /* sessions */
+  .meta-row{display:flex;align-items:center;justify-content:space-between;padding:2px 20px 8px}
+  .meta-row .count{font-size:12.5px;font-weight:500;color:var(--on-surface-variant)}
+  .chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--outline-variant);
+    border-radius:9px;padding:6px 12px;font-size:12.5px;font-weight:500;color:var(--on-surface)}
+  .chip.sel{background:var(--secondary-container);border-color:transparent;color:var(--on-secondary-container)}
+  .chip svg{width:15px;height:15px}
+  .cards{flex:1;overflow:hidden;padding:0 16px;display:flex;flex-direction:column;gap:10px}
+  .card{background:var(--surface-low);border-radius:24px;padding:12px 4px 12px 14px;display:flex;align-items:center;gap:14px}
+  .card .tile{width:46px;height:46px;border-radius:16px;background:var(--secondary-container);
+    color:var(--on-secondary-container);display:grid;place-items:center;flex:0 0 auto}
+  .card .tile svg{width:22px;height:22px}
+  .card .txt{flex:1;min-width:0}
+  .card .ttl{font-size:15px;font-weight:500;line-height:1.3;margin:0;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .card .sub2{margin:3px 0 0;font-size:12px;color:var(--on-surface-variant);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card .sub2.closed{color:var(--tertiary)}
+  .card .more{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:var(--on-surface-variant);flex:0 0 auto}
+  .card .more svg{width:19px;height:19px}
+  .fab-wrap{position:absolute;right:16px;bottom:76px}
+  .fab{display:inline-flex;align-items:center;gap:8px;background:var(--primary-container);
+    color:var(--on-primary-container);border-radius:18px;padding:16px 20px;font-size:14px;font-weight:600;
+    box-shadow:0 6px 18px rgba(18,32,24,.18)}
+  .fab svg{width:20px;height:20px}
+
+  /* empty chat */
+  .empty{flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 24px 12px;text-align:center}
+  .hero{width:84px;height:84px;border-radius:28px;background:var(--primary-container);
+    color:var(--on-primary-container);display:grid;place-items:center;margin:0 auto 18px}
+  .hero svg{width:36px;height:36px}
+  .empty h3{margin:0;font-size:24px;font-weight:600;letter-spacing:-.1px}
+  .empty p{margin:6px 0 20px;font-size:13.5px;line-height:1.5;color:var(--on-surface-variant)}
+  .sugg{background:var(--surface-low);border-radius:22px;padding:14px 16px;display:flex;
+    align-items:center;gap:12px;font-size:13.5px;text-align:left;margin-bottom:8px}
+  .sugg span{flex:1}
+  .sugg svg{width:18px;height:18px;color:var(--primary);flex:0 0 auto}
+
+  /* settings */
+  .chips-row{display:flex;gap:8px;padding:4px 16px 12px;overflow:hidden}
+  .scroll{flex:1;overflow:hidden;padding:0 16px 16px;display:flex;flex-direction:column;gap:12px}
+  .group{background:var(--surface-low);border-radius:24px;padding:16px}
+  .group h4{margin:0 0 12px;font-size:12.5px;font-weight:700;letter-spacing:.2px;color:var(--primary)}
+  .row{display:flex;align-items:center;gap:14px;padding:9px 0}
+  .row + .row{border-top:1px solid var(--surface-highest)}
+  .row .rt{flex:1;min-width:0}
+  .row .rt b{display:block;font-size:14px;font-weight:500}
+  .row .rt small{display:block;font-size:12px;color:var(--on-surface-variant);margin-top:2px;line-height:1.4}
+  .switch{width:52px;height:32px;border-radius:20px;background:var(--primary);position:relative;flex:0 0 auto}
+  .switch i{position:absolute;top:5px;right:5px;width:22px;height:22px;border-radius:50%;background:#fff}
+  .switch.off{background:var(--surface-highest);border:1px solid var(--outline)}
+  .switch.off i{right:auto;left:5px;width:18px;height:18px;top:6px;background:var(--outline)}
+  .value{font-size:13px;color:var(--on-surface-variant);display:flex;align-items:center;gap:6px}
+  .value svg{width:16px;height:16px}
+  .swatches{display:flex;gap:10px;margin-top:4px}
+  .sw{width:32px;height:32px;border-radius:50%;border:2px solid transparent;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+  .sw.on{outline:2px solid var(--primary);outline-offset:2px}
+
+  /* dialog */
+  .scrim{position:absolute;inset:0;background:rgba(23,29,25,.4);display:grid;place-items:center;padding:20px}
+  .dialog{background:#fff;border-radius:32px;padding:24px;width:100%;box-shadow:0 24px 48px rgba(0,0,0,.22)}
+  .dialog .dico{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:var(--error);margin-bottom:10px}
+  .dialog h3{margin:0 0 8px;font-size:22px;font-weight:500}
+  .dialog p{margin:0 0 12px;font-size:14px;line-height:1.5;color:var(--on-surface-variant)}
+  .dialog .detail{background:var(--surface-high);border-radius:14px;padding:10px;font-family:"Roboto Mono",monospace;font-size:11.5px;color:#2A352E}
+  .dialog .policy{font-size:11px;color:var(--on-surface-variant);margin-top:8px}
+  .dialog .acts{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+  .txtbtn{font-size:14px;font-weight:600;color:var(--primary);padding:10px 14px;border-radius:100px}
+
+  footer{max-width:1000px;margin:44px auto 0;color:#5C6B61;font-size:12.5px;line-height:1.6;text-align:center}
+</style>
+</head>
+<body>
+
+<header class="page">
+  <h1>Freenerf · Android UI</h1>
+  <p>A drawing of the Material You app shell, to look at before running it on the phone. Light theme with the
+     <b>Verdant</b> accent; Android 12+ follows the wallpaper palette instead. Chat is the live conversation,
+     Sessions is history, Settings is the tabbed settings centre — the same division the terminal app uses
+     (conversation, <code>Ctrl+H</code> history, <code>Ctrl+P</code> settings).</p>
+  <div class="legend">
+    <span class="pill"><b>Chat</b> · current session</span>
+    <span class="pill"><b>Sessions</b> · history</span>
+    <span class="pill"><b>Settings</b> · 9 tabs</span>
+    <span class="pill">Shapes 8 / 12 / 16 / 24 / 32 dp</span>
+  </div>
+</header>
+
+<div class="stage">
+
+  <!-- CHAT: active session -->
+  <div class="slot">
+    <div class="caption">Chat · running a session</div>
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span class="icons">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 20h3v-6H2v6zm5 0h3V9H7v11zm5 0h3V4h-3v16zm5 0h3v-9h-3v9z"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21l3.5-4.4A5.6 5.6 0 0 0 12 15a5.6 5.6 0 0 0-3.5 1.6L12 21zM12 13a7.9 7.9 0 0 1 5.5 2.2L20 12A11.9 11.9 0 0 0 12 8.4 11.9 11.9 0 0 0 4 12l2.5 3.2A7.9 7.9 0 0 1 12 13z"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1.8 6.6h2.6V18H1.8V6.6zm3.9 0h2.6V18H5.7V6.6zm3.9 0h2.6V18H9.6V6.6zm3.9 0h2.6V18h-2.6V6.6zm3.9 0h2.6V18h-2.6V6.6zM19 9h2v9h-2V9zm2.4-2.4h1.8V18h-1.8V6.6z" opacity=".4"/></svg>
+      </span></div>
+
+      <div class="appbar">
+        <div class="titles">
+          <h2>Fix the failing parser test</h2>
+          <p class="sub"><span class="dot"></span>responding · projects/api</p>
+        </div>
+        <div class="ibtn" title="Session history">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 3a9 9 0 1 0 8.8 11h-2.1A7 7 0 1 1 13 5v3l4.5-4L13 0v3zM12 8v5l4 2 .8-1.4-3.3-2V8H12z"/></svg>
+        </div>
+        <div class="ibtn" title="Session menu">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg>
+        </div>
+      </div>
+
+      <div class="body">
+        <div class="prompt">
+          <div class="label">PROMPT</div>
+          <p>The parser test fails on nested arrays. Find the cause and fix it, then run the suite.</p>
+        </div>
+
+        <div class="agent"><p>I'll reproduce the failure first, then read the parser around the array branch.</p></div>
+
+        <div class="tool">
+          <div class="head">
+            <div class="ico done"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.6 17.6 4 12l1.4-1.4 4.2 4.2 9-9L20 7.2l-10.4 10.4z"/></svg></div>
+            <div class="name">run_tests</div>
+            <div class="time">4.2s</div>
+            <div class="chev"><svg viewBox="0 0 24 24" fill="currentColor"><path d="m7 10 5 5 5-5z"/></svg></div>
+          </div>
+          <p class="summary">npm test -- parser.spec.ts · 1 failing: nested arrays keep the outer index</p>
+        </div>
+
+        <div class="tool">
+          <div class="head">
+            <div class="ico done"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.6 17.6 4 12l1.4-1.4 4.2 4.2 9-9L20 7.2l-10.4 10.4z"/></svg></div>
+            <div class="name">read_file</div>
+            <div class="time">0.3s</div>
+            <div class="chev"><svg viewBox="0 0 24 24" fill="currentColor"><path d="m7 10 5 5 5-5z"/></svg></div>
+          </div>
+          <p class="summary">src/parser.ts · lines 41–96</p>
+        </div>
+
+        <div class="agent">
+          <p>The array branch reuses the parent index:</p>
+          <div class="code"><span class="c">// src/parser.ts · 68</span><br/>
+            <span class="k">while</span> (i &lt; input.length) {<br/>
+            &nbsp;&nbsp;value.<span class="k">push</span>(<span class="s">parseValue</span>(input, i)); <span class="c">// i never advances</span><br/>
+            }</div>
+        </div>
+
+        <div class="tool">
+          <div class="head">
+            <div class="ico done"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.6 17.6 4 12l1.4-1.4 4.2 4.2 9-9L20 7.2l-10.4 10.4z"/></svg></div>
+            <div class="name">write_file</div>
+            <div class="time">0.2s</div>
+            <div class="chev"><svg viewBox="0 0 24 24" fill="currentColor"><path d="m7 10 5 5 5-5z"/></svg></div>
+          </div>
+          <p class="summary">src/parser.ts · 1 line changed, backup saved</p>
+        </div>
+
+        <div class="statusline"><span class="spinner"></span>verifying with the suite…</div>
+      </div>
+
+      <div class="composer">
+        <div class="usage">in 8 412 · out 1 905 · total 10 317</div>
+        <div class="fieldbox">
+          <div class="ibtn round" title="Attach file"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 6v11.5a4 4 0 0 1-8 0V6a2.75 2.75 0 1 1 5.5 0v10.5a1.5 1.5 0 0 1-3 0V7H9.5v9.5a3 3 0 0 0 6 0V6a4.25 4.25 0 0 0-8.5 0v11.5a5.5 5.5 0 0 0 11 0V6h-1.5z"/></svg></div>
+          <div class="placeholder">Describe a task…</div>
+          <div class="fab-mini" title="Send"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 20v-6l8-2-8-2V4l19 8-19 8z"/></svg></div>
+        </div>
+      </div>
+
+      <div class="navbar">
+        <div class="navitem on"><div class="ind"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2z"/></svg></div><span>Chat</span></div>
+        <div class="navitem"><div class="ind"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v3H3V5zm0 5.5h18v3H3v-3zM3 16h12v3H3v-3z"/></svg></div><span>Sessions</span></div>
+        <div class="navitem"><div class="ind"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zm9.4 3.5c0 .5 0 1-.1 1.5l2 1.5-2 3.5-2.4-1a8 8 0 0 1-2.6 1.5L16 21h-4l-.3-2.5A8 8 0 0 1 9 17l-2.4 1-2-3.5 2-1.5a10 10 0 0 1 0-3l-2-1.5 2-3.5 2.4 1A8 8 0 0 1 11.6 4L12 1.5h4l.3 2.5A8 8 0 0 1 19 5.5l2.4-1 2 3.5-2 1.5c.1.5.1 1 .1 1.5z"/></svg></div><span>Settings</span></div>
+      </div>
+      <div class="gesturebar"><i></i></div>
+    </div></div>
+    <div class="note">The live conversation: prompt as a labelled block, the answer as plain document text, tool calls as tonal cards, and one rounded composer. No avatars or message bubbles.</div>
+  </div>
+
+  <!-- CHAT: empty -->
+  <div class="slot">
+    <div class="caption">Chat · first prompt</div>
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span class="icons">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 20h3v-6H2v6zm5 0h3V9H7v11zm5 0h3V4h-3v16zm5 0h3v-9h-3v9z"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21l3.5-4.4A5.6 5.6 0 0 0 12 15a5.6 5.6 0 0 0-3.5 1.6L12 21zM12 13a7.9 7.9 0 0 1 5.5 2.2L20 12A11.9 11.9 0 0 0 12 8.4 11.9 11.9 0 0 0 4 12l2.5 3.2A7.9 7.9 0 0 1 12 13z"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1.8 6.6h2.6V18H1.8V6.6zm3.9 0h2.6V18H5.7V6.6zm3.9 0h2.6V18H9.6V6.6zm3.9 0h2.6V18h-2.6V6.6zm3.9 0h2.6V18h-2.6V6.6zM19 9h2v9h-2V9zm2.4-2.4h1.8V18h-1.8V6.6z" opacity=".4"/></svg>
+      </span></div>
+
+      <div class="appbar">
+        <div class="titles">
+          <h2>New session</h2>
+          <p class="sub">workspace · projects/api</p>
+        </div>
+        <div class="ibtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 3a9 9 0 1 0 8.8 11h-2.1A7 7 0 1 1 13 5v3l4.5-4L13 0v3zM12 8v5l4 2 .8-1.4-3.3-2V8H12z"/></svg></div>
+        <div class="ibtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg></div>
+      </div>
+
+      <div class="empty">
+        <div class="hero"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2z"/></svg></div>
+        <h3>New session</h3>
+        <p>Describe the task. The agent reads, edits and runs tools inside your workspace.</p>
+        <div class="sugg"><span>Summarize this workspace</span><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 17 17 7m0 0H9m8 0v8" stroke="currentColor" stroke-width="1.8" fill="none"/></svg></div>
+        <div class="sugg"><span>Find and fix a failing test</span><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 17 17 7m0 0H9m8 0v8" stroke="currentColor" stroke-width="1.8" fill="none"/></svg></div>
+        <div class="sugg"><span>Write a README for this project</span><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 17 17 7m0 0H9m8 0v8" stroke="currentColor" stroke-width="1.8" fill="none"/></svg></div>
+        <div class="sugg"><span>Explain the project structure</span><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 17 17 7m0 0H9m8 0v8" stroke="currentColor" stroke-width="1.8" fill="none"/></svg></div>
+      </div>
+
+      <div class="composer">
+        <div class="fieldbox">
+          <div class="ibtn round"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 6v11.5a4 4 0 0 1-8 0V6a2.75 2.75 0 1 1 5.5 0v10.5a1.5 1.5 0 0 1-3 0V7H9.5v9.5a3 3 0 0 0 6 0V6a4.25 4.25 0 0 0-8.5 0v11.5a5.5 5.5 0 0 0 11 0V6h-1.5z"/></svg></div>
+          <div class="textarea-mock">Add rate limiting to the upload route</div>
+          <div class="fab-mini"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 20v-6l8-2-8-2V4l19 8-19 8z"/></svg></div>
+        </div>
+      </div>
+
+      <div class="navbar">
+        <div class="navitem on"><div class="ind"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2z"/></svg></div><span>Chat</span></div>
+        <div class="navitem"><div class="ind"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v3H3V5zm0 5.5h18v3H3v-3zM3 16h12v3H3v-3z"/></svg></div><span>Sessions</span></div>
+        <div class="navitem"><div class="ind"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/></svg></div><span>Settings</span></div>
+      </div>
+      <div class="gesturebar"><i></i></div>
+    </div></div>
+    <div class="note">The first prompt creates the session; there is no empty session row waiting in history. Suggestions fill the composer-style field.</div>
+  </div>
+
+  <!-- SESSIONS -->
+  <div class="slot">
+    <div class="caption">Sessions · history</div>
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span class="icons">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 20h3v-6H2v6zm5 0h3V9H7v11zm5 0h3V4h-3v16zm5 0h3v-9h-3v9z"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21l3.5-4.4A5.6 5.6 0 0 0 12 15a5.6 5.6 0 0 0-3.5 1.6L12 21zM12 13a7.9 7.9 0 0 1 5.5 2.2L20 12A11.9 11.9 0 0 0 12 8.4 11.9 11.9 0 0 0 4 12l2.5 3.2A7.9 7.9 0 0 1 12 13z"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1.8 6.6h2.6V18H1.8V6.6zm3.9 0h2.6V18H5.7V6.6zm3.9 0h2.6V18H9.6V6.6zm3.9 0h2.6V18h-2.6V6.6zm3.9 0h2.6V18h-2.6V6.6zM19 9h2v9h-2V9zm2.4-2.4h1.8V18h-1.8V6.6z" opacity=".4"/></svg>
+      </span></div>
+
+      <div class="large-head" style="display:flex;align-items:center;justify-content:space-between">
+        <h2>Sessions</h2>
+        <div class="ibtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 4a6 6 0 1 0 3.6 10.8l4.3 4.3 1.4-1.4-4.3-4.3A6 6 0 0 0 10 4zm0 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"/></svg></div>
+      </div>
+
+      <div class="meta-row">
+        <span class="count">4 sessions</span>
+        <span class="chip sel"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v2.6H3V5zm0 5.7h12v2.6H3v-2.6zM3 16.4h18v2.6H3v-2.6z"/></svg>Closed too</span>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <div class="tile"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2z"/></svg></div>
+          <div class="txt"><p class="ttl">Fix the failing parser test</p><p class="sub2">2m ago · verifying with the suite</p></div>
+          <div class="more"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg></div>
+        </div>
+        <div class="card">
+          <div class="tile"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2z"/></svg></div>
+          <div class="txt"><p class="ttl">Add rate limiting to the upload route</p><p class="sub2">18m ago</p></div>
+          <div class="more"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg></div>
+        </div>
+        <div class="card">
+          <div class="tile"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2z"/></svg></div>
+          <div class="txt"><p class="ttl">Explain the project structure</p><p class="sub2">3h ago</p></div>
+          <div class="more"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg></div>
+        </div>
+        <div class="card">
+          <div class="tile"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2z"/></svg></div>
+          <div class="txt"><p class="ttl">Write a README for this project</p><p class="sub2 closed">Closed · yesterday</p></div>
+          <div class="more"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg></div>
+        </div>
+        <div class="card">
+          <div class="tile"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2z"/></svg></div>
+          <div class="txt"><p class="ttl">Migrate the settings store to JSON</p><p class="sub2">Nov 21</p></div>
+          <div class="more"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg></div>
+        </div>
+      </div>
+
+      <div class="fab-wrap"><div class="fab"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5z"/></svg>New session</div></div>
+
+      <div class="navbar">
+        <div class="navitem"><div class="ind"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2z"/></svg></div><span>Chat</span></div>
+        <div class="navitem on"><div class="ind"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v3H3V5zm0 5.5h18v3H3v-3zM3 16h12v3H3v-3z"/></svg></div><span>Sessions</span></div>
+        <div class="navitem"><div class="ind"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/></svg></div><span>Settings</span></div>
+      </div>
+      <div class="gesturebar"><i></i></div>
+    </div></div>
+    <div class="note">Tapping a card opens it in Chat. The overflow menu renames, closes or deletes a session; "Closed too" reveals archived runs.</div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="slot">
+    <div class="caption">Settings · General</div>
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span class="icons">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 20h3v-6H2v6zm5 0h3V9H7v11zm5 0h3V4h-3v16zm5 0h3v-9h-3v9z"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21l3.5-4.4A5.6 5.6 0 0 0 12 15a5.6 5.6 0 0 0-3.5 1.6L12 21zM12 13a7.9 7.9 0 0 1 5.5 2.2L20 12A11.9 11.9 0 0 0 12 8.4 11.9 11.9 0 0 0 4 12l2.5 3.2A7.9 7.9 0 0 1 12 13z"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1.8 6.6h2.6V18H1.8V6.6zm3.9 0h2.6V18H5.7V6.6zm3.9 0h2.6V18H9.6V6.6zm3.9 0h2.6V18h-2.6V6.6zm3.9 0h2.6V18h-2.6V6.6zM19 9h2v9h-2V9zm2.4-2.4h1.8V18h-1.8V6.6z" opacity=".4"/></svg>
+      </span></div>
+
+      <div class="appbar" style="padding-left:20px"><div class="titles"><h2 style="font-size:22px">Settings</h2></div></div>
+
+      <div class="chips-row">
+        <span class="chip sel">General</span>
+        <span class="chip">Appearance</span>
+        <span class="chip">Providers</span>
+        <span class="chip">Models</span>
+      </div>
+
+      <div class="scroll">
+        <div class="group">
+          <h4>PROVIDER</h4>
+          <div class="row">
+            <div class="rt"><b>OpenRouter</b><small>openai/gpt-4o-mini</small></div>
+            <span class="value">Change <svg viewBox="0 0 24 24" fill="currentColor"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" fill="none"/></svg></span>
+          </div>
+          <div class="row">
+            <div class="rt"><b>Permission mode</b><small>NORMAL · writes and commands ask first</small></div>
+            <span class="value">Normal <svg viewBox="0 0 24 24" fill="currentColor"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" fill="none"/></svg></span>
+          </div>
+        </div>
+
+        <div class="group">
+          <h4>BEHAVIOUR</h4>
+          <div class="row">
+            <div class="rt"><b>Stream replies</b><small>Batch tokens while the agent writes</small></div>
+            <div class="switch"><i></i></div>
+          </div>
+          <div class="row">
+            <div class="rt"><b>Verify changes</b><small>Run the project's checks before finishing</small></div>
+            <div class="switch"><i></i></div>
+          </div>
+          <div class="row">
+            <div class="rt"><b>Confirm destructive actions</b><small>Always ask before delete, overwrite or shell</small></div>
+            <div class="switch off"><i></i></div>
+          </div>
+        </div>
+
+        <div class="group">
+          <h4>APPEARANCE</h4>
+          <div class="row" style="border:0;display:block">
+            <div class="rt"><b>Accent</b><small>Also follows the wallpaper on Android 12+</small></div>
+            <div class="swatches">
+              <span class="sw on" style="background:#2E7D4F"></span>
+              <span class="sw" style="background:#6750A4"></span>
+              <span class="sw" style="background:#00658F"></span>
+              <span class="sw" style="background:#7A5900"></span>
+              <span class="sw" style="background:#984061"></span>
+              <span class="sw" style="background:#46525C"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="navbar">
+        <div class="navitem"><div class="ind"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2z"/></svg></div><span>Chat</span></div>
+        <div class="navitem"><div class="ind"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v3H3V5zm0 5.5h18v3H3v-3zM3 16h12v3H3v-3z"/></svg></div><span>Sessions</span></div>
+        <div class="navitem on"><div class="ind"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/></svg></div><span>Settings</span></div>
+      </div>
+      <div class="gesturebar"><i></i></div>
+    </div></div>
+    <div class="note">The CLI's Settings Center as filter chips: General, Appearance, Providers, Models, Keys, Permissions, Workspace, SSH, About.</div>
+  </div>
+
+  <!-- APPROVAL DIALOG -->
+  <div class="slot">
+    <div class="caption">Approval dialog</div>
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span class="icons">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 20h3v-6H2v6zm5 0h3V9H7v11zm5 0h3V4h-3v16zm5 0h3v-9h-3v9z"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21l3.5-4.4A5.6 5.6 0 0 0 12 15a5.6 5.6 0 0 0-3.5 1.6L12 21zM12 13a7.9 7.9 0 0 1 5.5 2.2L20 12A11.9 11.9 0 0 0 12 8.4 11.9 11.9 0 0 0 4 12l2.5 3.2A7.9 7.9 0 0 1 12 13z"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1.8 6.6h2.6V18H1.8V6.6zm3.9 0h2.6V18H5.7V6.6zm3.9 0h2.6V18H9.6V6.6zm3.9 0h2.6V18h-2.6V6.6zm3.9 0h2.6V18h-2.6V6.6zM19 9h2v9h-2V9zm2.4-2.4h1.8V18h-1.8V6.6z" opacity=".4"/></svg>
+      </span></div>
+
+      <div class="appbar">
+        <div class="titles"><h2>Fix the failing parser test</h2><p class="sub">projects/api</p></div>
+        <div class="ibtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg></div>
+      </div>
+
+      <div class="body">
+        <div class="prompt"><div class="label">PROMPT</div><p>The parser test fails on nested arrays. Find the cause and fix it.</p></div>
+        <div class="agent"><p>I need to pull the latest branch before editing.</p></div>
+        <div class="tool">
+          <div class="head">
+            <div class="ico"><div class="spinner" style="width:14px;height:14px"></div></div>
+            <div class="name">run_shell</div>
+            <div class="chev"><svg viewBox="0 0 24 24" fill="currentColor"><path d="m7 10 5 5 5-5z"/></svg></div>
+          </div>
+          <p class="summary">git pull --rebase · waiting for approval</p>
+        </div>
+      </div>
+
+      <div class="scrim">
+        <div class="dialog">
+          <div class="dico"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 1 21h22L12 2zm1 15h-2v-2h2v2zm0-4h-2V8h2v5z"/></svg></div>
+          <h3>Allow run_shell?</h3>
+          <p>This command changes the repository state in projects/api.</p>
+          <div class="detail">git pull --rebase</div>
+          <div class="policy">policy: NORMAL · writes and shell ask first</div>
+          <div class="acts"><span class="txtbtn" style="color:var(--on-surface-variant)">Deny</span><span class="txtbtn">Allow</span></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="note">The permission broker blocks the tool until the dialog is answered — the same DENIED / NORMAL / FULL policy as the CLI, enforced below the UI.</div>
+  </div>
+
+</div>
+
+<footer>Static mockup for review. It is not the app and it is not interactive; colours follow the app's Verdant scheme, and Android 12+ replaces them with the wallpaper palette.</footer>
+</body>
+</html>

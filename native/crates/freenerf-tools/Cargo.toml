@@ -1,0 +1,21 @@
+[package]
+name = "freenerf-tools"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+freenerf-core = { workspace = true }
+freenerf-permissions = { workspace = true }
+freenerf-workspace = { workspace = true }
+freenerf-tasks = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+reqwest = { workspace = true, features = ["blocking"] }
+base64 = { workspace = true }
+regex = { workspace = true }
+url = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+
+[dev-dependencies]
+tempfile = "3"

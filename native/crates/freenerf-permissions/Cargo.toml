@@ -1,0 +1,9 @@
+[package]
+name = "freenerf-permissions"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+freenerf-core = { workspace = true }
+regex = { workspace = true }
+serde_json = { workspace = true }
