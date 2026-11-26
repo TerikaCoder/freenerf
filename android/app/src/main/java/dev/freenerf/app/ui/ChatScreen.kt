@@ -3,7 +3,9 @@ package dev.freenerf.app.ui
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -30,14 +32,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.AccountTree
 import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.MoreVert
@@ -54,7 +59,6 @@ import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -63,6 +67,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -74,7 +79,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -84,6 +92,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.freenerf.app.AppContainer
 import dev.freenerf.app.PendingPermission
+import dev.freenerf.app.data.AppSettings
 import dev.freenerf.app.ui.components.MarkdownText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -104,6 +113,7 @@ fun ChatScreen(
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val settings by container.settings.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     var input by rememberSaveable { mutableStateOf("") }
     var attachment by remember { mutableStateOf<String?>(null) }
@@ -142,39 +152,70 @@ fun ChatScreen(
         }
     }
 
+    // Small app bar that takes a tonal fill once the conversation scrolls under
+    // it, like the M3 web shell. The title stays one line; the status line under
+    // it carries a colour-coded dot so a running agent is visible at a glance.
+    val appBarScroll = TopAppBarDefaults.pinnedScrollBehavior()
+
     Scaffold(
-        modifier = modifier,
+        modifier = modifier.nestedScroll(appBarScroll.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.surface,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(
                             text = state.title.ifBlank {
                                 if (state.items.isEmpty()) "New session" else "Session"
                             },
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Medium,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
-                        Text(
-                            text = if (state.busy && state.status.isNotBlank()) {
-                                state.status.replaceFirstChar { it.uppercase() }
-                            } else {
-                                container.workspace.name.ifBlank { "workspace" }
-                            },
-                            style = MaterialTheme.typography.labelSmall,
-                            color = if (state.busy) {
-                                MaterialTheme.colorScheme.primary
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            },
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            Box(
+                                Modifier
+                                    .size(6.dp)
+                                    .background(
+                                        color = if (state.busy) {
+                                            MaterialTheme.colorScheme.primary
+                                        } else {
+                                            MaterialTheme.colorScheme.outline
+                                        },
+                                        shape = CircleShape,
+                                    ),
+                            )
+                            Text(
+                                text = buildString {
+                                    if (state.busy) {
+                                        append(
+                                            state.status.replaceFirstChar { it.uppercase() }
+                                                .ifBlank { "Responding" },
+                                        )
+                                    } else {
+                                        append("Ready")
+                                    }
+                                    append(" · ")
+                                    append(container.workspace.name.ifBlank { "workspace" })
+                                },
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
                     }
                 },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                ),
+                scrollBehavior = appBarScroll,
                 actions = {
                     IconButton(onClick = onOpenSessions) {
                         Icon(Icons.Filled.History, contentDescription = "Session history")
@@ -236,6 +277,7 @@ fun ChatScreen(
                 },
                 onStop = viewModel::stop,
                 usage = state.usage,
+                permissionMode = settings.permissionMode,
             )
         },
     ) { padding ->
@@ -383,10 +425,10 @@ fun ChatScreen(
 @Composable
 private fun SessionStart(workspace: String, onSuggestion: (String) -> Unit) {
     val suggestions = listOf(
-        "Summarize this workspace",
-        "Find and fix a failing test",
-        "Write a README for this project",
-        "Explain the project structure",
+        Triple("Summarize this workspace", "Read the tree and explain it", Icons.Filled.AutoAwesome),
+        Triple("Find and fix a failing test", "Reproduce, patch, verify", Icons.Filled.Build),
+        Triple("Write a README for this project", "Document the entry points", Icons.Filled.Description),
+        Triple("Explain the project structure", "Map modules and their roles", Icons.Filled.AccountTree),
     )
     Column(
         Modifier.fillMaxSize().padding(horizontal = 24.dp),
@@ -395,7 +437,7 @@ private fun SessionStart(workspace: String, onSuggestion: (String) -> Unit) {
     ) {
         Box(
             Modifier
-                .size(84.dp)
+                .size(88.dp)
                 .background(
                     MaterialTheme.colorScheme.primaryContainer,
                     RoundedCornerShape(28.dp),
@@ -406,7 +448,7 @@ private fun SessionStart(workspace: String, onSuggestion: (String) -> Unit) {
                 Icons.Filled.Terminal,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.size(36.dp),
+                modifier = Modifier.size(38.dp),
             )
         }
         Spacer(Modifier.height(20.dp))
@@ -419,32 +461,41 @@ private fun SessionStart(workspace: String, onSuggestion: (String) -> Unit) {
             modifier = Modifier.padding(top = 6.dp, bottom = 22.dp),
         )
         Column(
-            Modifier.fillMaxWidth(),
+            Modifier.fillMaxWidth().widthIn(max = 520.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            for (suggestion in suggestions) {
+            for ((title, hint, icon) in suggestions) {
                 Surface(
                     color = MaterialTheme.colorScheme.surfaceContainerLow,
-                    shape = MaterialTheme.shapes.large,
+                    shape = MaterialTheme.shapes.medium,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(MaterialTheme.shapes.large)
-                        .clickable { onSuggestion(suggestion) },
+                        .clip(MaterialTheme.shapes.medium)
+                        .clickable { onSuggestion(title) },
                 ) {
                     Row(
                         Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
-                        Text(
-                            suggestion,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.weight(1f),
+                        Icon(
+                            icon,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp),
                         )
+                        Column(Modifier.weight(1f)) {
+                            Text(title, style = MaterialTheme.typography.bodyMedium)
+                            Text(
+                                hint,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                         Icon(
                             Icons.Filled.NorthEast,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(18.dp),
                         )
                     }
@@ -496,22 +547,57 @@ private fun AssistantMessage(item: ChatItem.Assistant) {
             }
         }
         if (item.streaming) {
-            LinearProgressIndicator(
-                Modifier
-                    .fillMaxWidth(0.4f)
-                    .height(3.dp)
-                    .clip(CircleShape),
-            )
+            RespondingPill()
         }
+    }
+}
+
+/** Tonal pill that reports a live turn, matching the web thread's status chip. */
+@Composable
+private fun RespondingPill() {
+    Row(
+        Modifier
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        CircularProgressIndicator(
+            modifier = Modifier.size(13.dp),
+            strokeWidth = 2.dp,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+        )
+        Text(
+            "Responding",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+        )
     }
 }
 
 @Composable
 private fun ToolCardView(tool: ToolCard) {
     var expanded by remember { mutableStateOf(false) }
+    val chevron by animateFloatAsState(
+        targetValue = if (expanded) 180f else 0f,
+        label = "tool-chevron",
+    )
+    // The tile carries the outcome: tonal for a running call, error container for
+    // a failure, neutral surface with a primary glyph when it succeeded.
+    val tileColor = when (tool.status) {
+        ToolStatus.Running -> MaterialTheme.colorScheme.tertiaryContainer
+        ToolStatus.Completed -> MaterialTheme.colorScheme.surfaceContainerHighest
+        ToolStatus.Failed -> MaterialTheme.colorScheme.errorContainer
+    }
+    val tileTint = when (tool.status) {
+        ToolStatus.Running -> MaterialTheme.colorScheme.onTertiaryContainer
+        ToolStatus.Completed -> MaterialTheme.colorScheme.primary
+        ToolStatus.Failed -> MaterialTheme.colorScheme.onErrorContainer
+    }
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainerLow,
-        shape = MaterialTheme.shapes.large,
+        shape = MaterialTheme.shapes.medium,
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
@@ -521,36 +607,35 @@ private fun ToolCardView(tool: ToolCard) {
             ) {
                 Box(
                     Modifier
-                        .size(26.dp)
-                        .background(
-                            MaterialTheme.colorScheme.surfaceContainerHighest,
-                            RoundedCornerShape(9.dp),
-                        ),
+                        .size(32.dp)
+                        .background(tileColor, RoundedCornerShape(10.dp)),
                     contentAlignment = Alignment.Center,
                 ) {
                     when (tool.status) {
                         ToolStatus.Running -> CircularProgressIndicator(
-                            modifier = Modifier.size(14.dp),
+                            modifier = Modifier.size(15.dp),
                             strokeWidth = 2.dp,
+                            color = tileTint,
                         )
                         ToolStatus.Completed -> Icon(
                             Icons.Filled.CheckCircle,
                             contentDescription = "Completed",
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(16.dp),
+                            tint = tileTint,
+                            modifier = Modifier.size(17.dp),
                         )
                         ToolStatus.Failed -> Icon(
                             Icons.Filled.Error,
                             contentDescription = "Failed",
-                            tint = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(16.dp),
+                            tint = tileTint,
+                            modifier = Modifier.size(17.dp),
                         )
                     }
                 }
                 Text(
                     text = tool.name,
-                    style = MaterialTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelMedium,
                     fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Medium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f),
@@ -564,8 +649,9 @@ private fun ToolCardView(tool: ToolCard) {
                 }
                 IconButton(onClick = { expanded = !expanded }, modifier = Modifier.size(30.dp)) {
                     Icon(
-                        if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                        Icons.Filled.ExpandMore,
                         contentDescription = if (expanded) "Collapse" else "Expand",
+                        modifier = Modifier.rotate(chevron),
                     )
                 }
             }
@@ -590,7 +676,7 @@ private fun ToolCardView(tool: ToolCard) {
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .background(
-                                        MaterialTheme.colorScheme.surface,
+                                        MaterialTheme.colorScheme.surfaceContainerHigh,
                                         RoundedCornerShape(12.dp),
                                     )
                                     .horizontalScroll(rememberScrollState())
@@ -608,7 +694,7 @@ private fun ToolCardView(tool: ToolCard) {
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .background(
-                                        MaterialTheme.colorScheme.surface,
+                                        MaterialTheme.colorScheme.surfaceContainerHigh,
                                         RoundedCornerShape(12.dp),
                                     )
                                     .horizontalScroll(rememberScrollState())
@@ -641,6 +727,7 @@ private fun Composer(
     onSend: () -> Unit,
     onStop: () -> Unit,
     usage: Usage,
+    permissionMode: String,
 ) {
     Surface(color = MaterialTheme.colorScheme.surface) {
         Column(
@@ -650,12 +737,35 @@ private fun Composer(
                 .imePadding()
                 .padding(start = 12.dp, end = 12.dp, top = 6.dp, bottom = 10.dp),
         ) {
-            if (!usage.isEmpty) {
+            Row(
+                Modifier
+                    .widthIn(max = 840.dp)
+                    .fillMaxWidth()
+                    .align(Alignment.CenterHorizontally)
+                    .padding(start = 8.dp, end = 8.dp, bottom = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
                 Text(
-                    "Tokens in ${usage.input} · out ${usage.output} · total ${usage.total}",
+                    if (usage.isEmpty) {
+                        "No tokens used yet"
+                    } else {
+                        "in ${usage.input} · out ${usage.output} · total ${usage.total}"
+                    },
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 8.dp, bottom = 6.dp),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
+                // Mirrors the web composer's mode chip: the active permission
+                // mode is always visible next to the field, not buried in menus.
+                Text(
+                    AppSettings.permissionLabel(permissionMode).uppercase(),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 1.sp,
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
             if (attachment != null) {
@@ -678,10 +788,26 @@ private fun Composer(
                     modifier = Modifier.padding(bottom = 6.dp),
                 )
             }
+            // One tonal container owns the field, the attach action and the send
+            // FAB. A 2 dp primary ring marks focus, like the web composer.
+            val fieldShape = MaterialTheme.shapes.extraLarge
+            var composerFocused by remember { mutableStateOf(false) }
             Surface(
                 color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                shape = MaterialTheme.shapes.extraLarge,
-                modifier = Modifier.fillMaxWidth(),
+                shape = fieldShape,
+                modifier = Modifier
+                    .widthIn(max = 840.dp)
+                    .fillMaxWidth()
+                    .align(Alignment.CenterHorizontally)
+                    .border(
+                        width = 2.dp,
+                        color = if (composerFocused) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            Color.Transparent
+                        },
+                        shape = fieldShape,
+                    ),
             ) {
                 Row(
                     Modifier.padding(4.dp),
@@ -693,7 +819,9 @@ private fun Composer(
                     OutlinedTextField(
                         value = value,
                         onValueChange = onValueChange,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .onFocusChanged { composerFocused = it.isFocused },
                         placeholder = { Text("Describe a task…") },
                         maxLines = 6,
                         shape = RoundedCornerShape(22.dp),

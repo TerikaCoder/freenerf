@@ -168,3 +168,50 @@ inspection.
   longer double-pad the status/navigation bars.
 - Theme shapes grew to Material You rounding (8/12/16/24/32 dp), and dialogs use
   `extraLarge`.
+
+## Material You web-parity pass (2026-11-26)
+
+The Compose shell had drifted from the `material-you/` design system, so this
+pass ported the concrete differences rather than restyling in the abstract.
+
+- **Chat app bar.** The title is now `titleLarge` with a second line carrying a
+  6 dp status dot plus `Ready` (or the running turn's status) and a separator
+  with the workspace name, matching the 64 px web bar. The bar uses
+  `TopAppBarDefaults.pinnedScrollBehavior()` with `nestedScroll` and a tonal
+  `surfaceContainer` scrolled container, so it lifts off the thread on scroll
+  like the web shell.
+- **Live turn.** The streaming placeholder is the web status chip: a
+  `primaryContainer` pill with a 13 dp spinner and `Responding`, replacing the
+  full-width `LinearProgressIndicator`.
+- **Tool cards.** Each call now shows a 32 dp status tile — `tertiaryContainer`
+  while running, `surfaceContainerHighest` with a primary glyph when done, and
+  `errorContainer` when it failed — instead of one neutral tile with coloured
+  icons. Cards use `shapes.medium`, detail blocks sit on `surfaceContainerHigh`,
+  and the expand chevron rotates with `animateFloatAsState` instead of swapping
+  icons.
+- **Empty state.** The four suggestions carry an icon and a one-line hint, are
+  capped at 520 dp and use `shapes.medium`, matching the web start cards.
+- **Composer.** Added the web meta row above the field: token usage on the left
+  and the active permission mode (`Read only` / `Ask first` / `Full access`,
+  from `AppSettings.permissionLabel`) on the right. The tonal field container
+  gets a 2 dp primary ring on focus via `onFocusChanged`, and the composer and
+  its meta row are capped at 840 dp so they do not stretch on tablets.
+- **Sessions.** The binary "All / Active only" toggle became the web list's
+  three filters — All, Open, Closed — as `FilterChip`s with a `Check` leading
+  icon and a session count label. The list now always queries
+  `includeClosed = true` and narrows locally, so switching filters is instant
+  and does not re-query. Card tiles are 44 dp at 14 dp radius, and the sub line
+  uses `labelMedium`.
+- **Settings.** On phones the category picker is a
+  `PrimaryScrollableTabRow` with `Tab`s directly under the app bar (the wide
+  layout keeps its `SettingsIndex` rail), replacing the `FilterChip` row.
+
+Verified: `scripts/build-rust-android.sh release arm64-v8a` rebuilds the
+6.8 MB AArch64 `libfreenerf.so`; `:app:assembleDebug` succeeds (26 MB APK with
+`classes.dex` + `lib/arm64-v8a/libfreenerf.so`); `:app:testDebugUnitTest`
+passes. Only pre-existing warnings remain (`SshClient.setPassword`,
+`TabRow` deprecations in `ModelBrowserDialog` and the Models tab).
+
+Still not verified: any on-device or visual inspection. No emulator or device is
+available in this environment, so the layout was checked by compiling and
+inspecting the packaged APK only.

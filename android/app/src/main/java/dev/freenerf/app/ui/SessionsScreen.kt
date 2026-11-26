@@ -18,12 +18,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Terminal
@@ -79,7 +80,8 @@ data class SessionsUiState(
     val loading: Boolean = true,
     val query: String = "",
     val searching: Boolean = false,
-    val includeClosed: Boolean = true,
+    /** "all", "open" or "closed" — the same three filters the web list offers. */
+    val filter: String = "all",
     val error: String? = null,
 )
 
@@ -100,12 +102,16 @@ class SessionsViewModel(private val container: AppContainer) : ViewModel() {
             // Keep whatever list is already on screen: a refresh must not flash
             // a spinner over sessions the user can already read.
             _state.update { it.copy(loading = it.sessions.isEmpty()) }
+            // Always load closed sessions too, then narrow locally, so the filter
+            // chips switch instantly instead of waiting on another query.
             val list = if (_state.value.searching) {
                 container.searchSessions(_state.value.query)
             } else {
-                container.sessions(includeClosed = _state.value.includeClosed)
+                container.sessions(includeClosed = true)
             }
-            _state.update { it.copy(sessions = list, loading = false) }
+            _state.update {
+                it.copy(sessions = list.filter { session -> matchesFilter(session, it.filter) }, loading = false)
+            }
         }
     }
 
@@ -113,11 +119,13 @@ class SessionsViewModel(private val container: AppContainer) : ViewModel() {
         _state.update { it.copy(query = query) }
         viewModelScope.launch {
             val list = if (query.isBlank()) {
-                container.sessions(includeClosed = _state.value.includeClosed)
+                container.sessions(includeClosed = true)
             } else {
                 container.searchSessions(query)
             }
-            _state.update { it.copy(sessions = list, loading = false) }
+            _state.update {
+                it.copy(sessions = list.filter { session -> matchesFilter(session, it.filter) }, loading = false)
+            }
         }
     }
 
@@ -126,8 +134,8 @@ class SessionsViewModel(private val container: AppContainer) : ViewModel() {
         refresh()
     }
 
-    fun toggleClosed() {
-        _state.update { it.copy(includeClosed = !it.includeClosed) }
+    fun setFilter(filter: String) {
+        _state.update { it.copy(filter = filter) }
         refresh()
     }
 
@@ -252,27 +260,39 @@ fun SessionsScreen(
                 Row(
                     Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                        .padding(horizontal = 16.dp, vertical = 6.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    FilterChip(
-                        selected = state.includeClosed,
-                        onClick = { if (!state.includeClosed) viewModel.toggleClosed() },
-                        label = { Text("All") },
-                        leadingIcon = {
-                            Icon(
-                                Icons.Filled.FilterList,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp),
-                            )
+                    Text(
+                        when (state.sessions.size) {
+                            0 -> "No sessions"
+                            1 -> "1 session"
+                            else -> "${state.sessions.size} sessions"
                         },
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    FilterChip(
-                        selected = !state.includeClosed,
-                        onClick = { if (state.includeClosed) viewModel.toggleClosed() },
-                        label = { Text("Active only") },
-                    )
+                    Spacer(Modifier.weight(1f))
+                    listOf("all" to "All", "open" to "Open", "closed" to "Closed")
+                        .forEach { (value, label) ->
+                            FilterChip(
+                                selected = state.filter == value,
+                                onClick = { viewModel.setFilter(value) },
+                                label = { Text(label) },
+                                leadingIcon = if (state.filter == value) {
+                                    {
+                                        Icon(
+                                            Icons.Filled.Check,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(16.dp),
+                                        )
+                                    }
+                                } else {
+                                    null
+                                },
+                            )
+                        }
                 }
 
                 when {
@@ -429,6 +449,12 @@ fun SessionsScreen(
 
 private fun closedSession(session: JSONObject): Boolean = session.optInt("is_closed", 0) == 1
 
+private fun matchesFilter(session: JSONObject, filter: String): Boolean = when (filter) {
+    "open" -> !closedSession(session)
+    "closed" -> closedSession(session)
+    else -> true
+}
+
 @Composable
 private fun SessionCard(
     session: JSONObject,
@@ -454,8 +480,8 @@ private fun SessionCard(
         ) {
             Box(
                 Modifier
-                    .size(46.dp)
-                    .clip(MaterialTheme.shapes.medium)
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(14.dp))
                     .background(
                         if (closed) {
                             MaterialTheme.colorScheme.surfaceContainerHighest
@@ -491,7 +517,7 @@ private fun SessionCard(
                             append(" · Closed")
                         }
                     },
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.labelMedium,
                     color = if (closed) {
                         MaterialTheme.colorScheme.tertiary
                     } else {

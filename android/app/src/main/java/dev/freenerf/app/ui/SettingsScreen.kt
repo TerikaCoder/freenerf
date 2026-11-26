@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -53,6 +52,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SnackbarHost
@@ -185,15 +185,25 @@ fun SettingsScreen(
                 }
                 Column(Modifier.weight(1f).fillMaxHeight()) {
                     if (!wide) {
-                        LazyRow(
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        // Primary tabs directly under the app bar, the way the web
+                        // settings centre arranges them. Scrollable so all nine
+                        // categories stay reachable on a phone.
+                        PrimaryScrollableTabRow(
+                            selectedTabIndex = tab,
+                            edgePadding = 12.dp,
+                            divider = {},
                         ) {
-                            items(SETTINGS_CATEGORIES.size) { index ->
-                                FilterChip(
+                            SETTINGS_CATEGORIES.forEachIndexed { index, category ->
+                                Tab(
                                     selected = tab == index,
                                     onClick = { tab = index },
-                                    label = { Text(SETTINGS_CATEGORIES[index].label) },
+                                    text = {
+                                        Text(
+                                            category.label,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                        )
+                                    },
                                 )
                             }
                         }
