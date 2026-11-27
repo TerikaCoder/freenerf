@@ -288,29 +288,40 @@ What the app provides:
 
 - A responsive Material 3 Expressive interface: phones use a bottom navigation
   bar, while wider screens use a navigation rail. The main sections are Chat,
-  Sessions and Settings.
+  Sessions and Settings. Chat opens on a small app bar whose title sits above a
+  status line — a colour dot plus `Ready` or the running turn, and the
+  workspace name — that takes a tonal fill as the conversation scrolls under it.
+  The look follows the Material You design system in
+  [`material-you/`](material-you/) (the web front end's tokens, tool cards,
+  composer and session list).
 - Material You dynamic colour on Android 12+, plus Theme Studio with system,
   light and dark modes; six preset accents; a custom `#RRGGBB` accent that
   generates a complete palette; standard, medium and high contrast; and
   optional AMOLED-black surfaces.
 - Streaming chat with a Markdown renderer for headings, lists, complete tables
-  and copyable code blocks. Tool calls appear as expandable cards with their
-  arguments, status and output. The composer supports file attachments, a
-  stop/cancel control and token-usage counts. Attached documents are copied
+  and copyable code blocks. A live turn shows a tonal "Responding" pill instead
+  of a progress bar. Tool calls appear as expandable cards with their arguments,
+  status and output, and each card carries a status tile — tonal while running,
+  primary on success, error container on failure — with a chevron that rotates
+  as the card opens. The composer puts token usage and the active permission
+  mode on a meta row above the field, rings the tonal field in the primary
+  colour while focused, supports file attachments and a stop/cancel control,
+  and stays capped at 840 dp on tablets. Attached documents are copied
   into `.freenerf/uploads/` and their workspace-relative paths are included in
   the prompt; text files are the most useful attachment format for the agent.
 - A render-optimized streaming path: tokens are coalesced before UI updates,
   only the completed Markdown prefix is parsed, inline spans are memoised, and
   scrolling follows new output only while the reader is already at the bottom.
-- Session history with search and closed-session filtering, plus rename, close,
-  reopen and delete actions. New sessions are created when the first prompt is
-  sent. Agent plans and task progress are shown inside the conversation; there
-  is no separate Tasks tab.
+- Session history with search and the same All / Open / Closed filters as the
+  web list, plus rename, close, reopen and delete actions. New sessions are
+  created when the first prompt is sent. Agent plans and task progress are
+  shown inside the conversation; there is no separate Tasks tab.
 - The same four providers and 22 built-in tools, with `DENIED` / `NORMAL` /
   `FULL` permissions and an in-app approval dialog. Four additional SSH tools
   are available through the Android remote-execution bridge.
 - A nine-section Settings centre: General, Appearance, Providers, Models, API
-  keys, Permissions, Workspace, SSH and About. General settings include
+  keys, Permissions, Workspace, SSH and About. On phones the categories are
+  primary scrollable tabs under the app bar; wider screens use a side index. General settings include
   temperature, token/step limits, streaming and extra system instructions. The
   Models section loads the catalogs for all four providers and supports search
   and refresh; API keys are managed together in the Keys section.
