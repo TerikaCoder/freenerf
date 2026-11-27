@@ -404,3 +404,68 @@ def test_tool_timeout_is_reported(tmp_path):
         if item.get("role") == "tool"
     ]
     assert "timed out" in tool_messages[-1]["content"].lower()
+
+
+def test_nonzero_shell_exit_is_reported_as_tool_failure(tmp_path):
+    agent, provider, _, _ = make_agent(tmp_path, [
+        call("run_shell", {"command": "printf failed; exit 7"}),
+        {"content": "The command failed.", "tool_calls": []},
+    ], permission="full")
+
+    agent.chat("Run the command")
+
+    tool_messages = [
+        item for item in provider.calls[1]["messages"]
+        if item.get("role") == "tool"
+    ]
+    assert "Exit code: 7" in tool_messages[-1]["content"]
+    assert "failed" in tool_messages[-1]["content"]
+
+
+def test_completed_finish_requires_successful_verification_after_edits(tmp_path):
+    agent, provider, manager, store = make_agent(tmp_path, [
+        call("write_file", {"path": "result.txt", "content": "done"}),
+        call("finish", {"status": "completed", "summary": "done"}, "c2"),
+        call("verify", {"command": "python -c 'assert True'"}, "c3"),
+        call("finish", {"status": "completed", "summary": "verified"}, "c4"),
+    ], permission="full")
+
+    assert agent.chat("Create a verified file") == "verified"
+
+    finish_feedback = [
+        item for item in provider.calls[2]["messages"]
+        if item.get("role") == "tool"
+    ]
+    assert "no verification command has succeeded" in finish_feedback[-1]["content"]
+    assert store.get_task(manager.task_id)["status"] == "completed"
+
+
+def test_changes_after_verification_require_a_new_verification(tmp_path):
+    agent, provider, _, _ = make_agent(tmp_path, [
+        call("write_file", {"path": "result.txt", "content": "first"}),
+        call("verify", {"command": "python -c 'assert True'"}),
+        call("write_file", {"path": "result.txt", "content": "second"}),
+        call("finish", {"status": "completed", "summary": "done"}, "c4"),
+        call("verify", {"command": "python -c 'assert True'"}, "c5"),
+        call("finish", {"status": "completed", "summary": "verified"}, "c6"),
+    ], permission="full")
+
+    assert agent.chat("Create and verify a file") == "verified"
+
+    finish_feedback = [
+        item for item in provider.calls[4]["messages"]
+        if item.get("role") == "tool"
+    ]
+    assert "no verification command has succeeded" in finish_feedback[-1]["content"]
+
+
+def test_edit_without_verification_cannot_be_implicitly_completed(tmp_path):
+    agent, _, manager, store = make_agent(tmp_path, [
+        call("write_file", {"path": "result.txt", "content": "done"}),
+        {"content": "The file is done.", "tool_calls": []},
+    ], permission="full")
+
+    agent.chat("Create a file")
+
+    assert agent.last_outcome.status == "partial"
+    assert store.get_task(manager.task_id)["status"] == "partial"

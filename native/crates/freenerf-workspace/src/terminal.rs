@@ -14,10 +14,37 @@ use std::time::{Duration, Instant};
 pub const MAX_OUTPUT: usize = 20_000;
 pub const MAX_TIMEOUT_SECS: u64 = 600;
 
+#[derive(Debug, Clone, PartialEq)]
+pub struct ShellResult {
+    pub output: String,
+    pub exit_code: Option<i32>,
+    pub timed_out: bool,
+    pub elapsed: f64,
+}
+
+impl ShellResult {
+    pub fn succeeded(&self) -> bool {
+        self.exit_code == Some(0) && !self.timed_out
+    }
+
+    pub fn formatted(&self) -> String {
+        let header = if self.timed_out {
+            "Command timed out".to_string()
+        } else if let Some(code) = self.exit_code {
+            format!("Exit code: {code}")
+        } else {
+            "Command could not be run".to_string()
+        };
+        format!("{header} ({:.2}s)\n{}", self.elapsed, self.output)
+            .trim_end()
+            .to_string()
+    }
+}
+
 /// Pluggable shell backend, so the Android layer can substitute a different
 /// executor without changing the tool implementations.
 pub trait ShellBackend: Send + Sync {
-    fn run(&self, command: &str, cwd: &Path, timeout: Duration) -> String;
+    fn run(&self, command: &str, cwd: &Path, timeout: Duration) -> ShellResult;
 }
 
 #[derive(Debug, Clone)]
@@ -59,10 +86,15 @@ impl Terminal {
 }
 
 impl ShellBackend for Terminal {
-    fn run(&self, command: &str, cwd: &Path, timeout: Duration) -> String {
+    fn run(&self, command: &str, cwd: &Path, timeout: Duration) -> ShellResult {
         let command = command.trim();
         if command.is_empty() {
-            return "No command provided".into();
+            return ShellResult {
+                output: "No command provided".into(),
+                exit_code: None,
+                timed_out: false,
+                elapsed: 0.0,
+            };
         }
 
         let workdir = if cwd.as_os_str().is_empty() {
@@ -72,7 +104,12 @@ impl ShellBackend for Terminal {
         };
 
         if !workdir.is_dir() {
-            return format!("Working directory does not exist: {}", workdir.display());
+            return ShellResult {
+                output: format!("Working directory does not exist: {}", workdir.display()),
+                exit_code: None,
+                timed_out: false,
+                elapsed: 0.0,
+            };
         }
 
         let timeout = timeout
@@ -105,7 +142,14 @@ impl ShellBackend for Terminal {
 
         let mut process = match builder.spawn() {
             Ok(child) => child,
-            Err(e) => return format!("Cannot start command: {e}"),
+            Err(e) => {
+                return ShellResult {
+                    output: format!("Cannot start command: {e}"),
+                    exit_code: None,
+                    timed_out: false,
+                    elapsed: started.elapsed().as_secs_f64(),
+                }
+            }
         };
 
         let mut stdout = process.stdout.take();
@@ -167,15 +211,12 @@ impl ShellBackend for Terminal {
             output = format!("[first {omitted} characters omitted]\n{tail}");
         }
 
-        let header = if timed_out {
-            format!("Command timed out after {timeout:.0}s")
-        } else {
-            format!("Exit code: {}", code.unwrap_or(-1))
-        };
-
-        format!("{header} ({elapsed:.2}s)\n{output}")
-            .trim_end()
-            .to_string()
+        ShellResult {
+            output,
+            exit_code: if timed_out { None } else { code },
+            timed_out,
+            elapsed,
+        }
     }
 }
 
@@ -198,6 +239,7 @@ impl Terminal {
             &self.cwd,
             Duration::from_secs(seconds.max(1)),
         )
+        .formatted()
     }
 }
 
@@ -223,6 +265,21 @@ mod tests {
         let output = terminal.run("sleep 5", Some(1));
         assert!(started.elapsed() < Duration::from_secs(4));
         assert!(output.contains("timed out"), "{output}");
+    }
+
+    #[test]
+    fn preserves_nonzero_exit_status() {
+        let dir = tempfile::tempdir().unwrap();
+        let terminal = Terminal::new(dir.path(), 10);
+        let result = ShellBackend::run(
+            &terminal,
+            "printf failure; exit 7",
+            dir.path(),
+            Duration::from_secs(10),
+        );
+        assert_eq!(result.exit_code, Some(7));
+        assert!(!result.succeeded());
+        assert!(result.formatted().contains("failure"));
     }
 
     #[test]

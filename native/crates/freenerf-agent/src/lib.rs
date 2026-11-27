@@ -90,6 +90,8 @@ pub struct Agent {
     tool_call_count: u32,
     denied_count: u32,
     awaiting_approval: bool,
+    changes_made: bool,
+    verification_passed: bool,
     plain_mode: bool,
     summary_mode: bool,
     background: Arc<BackgroundTasks>,
@@ -183,6 +185,8 @@ impl Agent {
             tool_call_count: 0,
             denied_count: 0,
             awaiting_approval: false,
+            changes_made: false,
+            verification_passed: false,
             plain_mode: false,
             summary_mode: false,
             background,
@@ -252,6 +256,8 @@ impl Agent {
         self.denied_count = 0;
         self.awaiting_approval = false;
         self.summary_mode = false;
+        self.changes_made = false;
+        self.verification_passed = false;
     }
 
     fn refresh_system_prompt(&mut self) {
@@ -386,6 +392,8 @@ impl Agent {
         self.last_outcome = None;
         self.awaiting_approval = false;
         self.summary_mode = false;
+        self.changes_made = false;
+        self.verification_passed = false;
 
         if let Some(task) = self.task_manager.start(prompt, None)? {
             self.emit(AgentEvent::TaskStarted { task });
@@ -721,6 +729,24 @@ impl Agent {
             return (name, args, outcome, total_calls);
         }
 
+        if name == "finish"
+            && args.get("status").and_then(Value::as_str) == Some("completed")
+            && self.changes_made
+            && !self.verification_passed
+        {
+            let outcome = ToolOutcome {
+                name: name.clone(),
+                kind: "error".into(),
+                error: "Cannot mark this task completed: workspace files were changed, but no \
+                        verification command has succeeded. Run verify and inspect its output, \
+                        or finish with partial/failed."
+                    .into(),
+                ..Default::default()
+            };
+            self.emit_tool_failure(&call.id, &outcome);
+            return (name, args, outcome, total_calls + 1);
+        }
+
         self.status(&prompt::tool_label(&name), true);
         self.emit(AgentEvent::ToolStarted {
             call_id: call.id.clone(),
@@ -773,6 +799,19 @@ impl Agent {
             outcome.is_ok(),
         );
 
+        if outcome.is_ok()
+            && matches!(
+                name.as_str(),
+                "write_file" | "edit_file" | "delete_file" | "ssh_write_file"
+            )
+        {
+            self.changes_made = true;
+            self.verification_passed = false;
+        }
+        if outcome.is_ok() && name == "verify" {
+            self.verification_passed = true;
+        }
+
         (name, args, outcome, total_calls + 1)
     }
 
@@ -823,6 +862,13 @@ impl Agent {
         let status = if self.awaiting_approval {
             let _ = self.task_manager.finish("awaiting_approval", &content);
             "awaiting_approval".to_string()
+        } else if self.changes_made && !self.verification_passed {
+            let summary = format!(
+                "Workspace files were changed, but no successful verification was recorded. \
+                 {content}"
+            );
+            let _ = self.task_manager.finish("partial", &summary);
+            "partial".to_string()
         } else {
             match self.task_manager.finish_implicit(&content) {
                 Ok(Some(task)) => task["status"]

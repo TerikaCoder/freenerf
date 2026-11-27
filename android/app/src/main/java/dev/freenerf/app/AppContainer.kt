@@ -285,6 +285,10 @@ class AppContainer(context: Context) : NativeBridgeCallbacks {
             Native.callArrayOrEmpty("task.list", payload).objects()
         }
 
+    suspend fun task(id: String): JSONObject? = withContext(Dispatchers.IO) {
+        Native.callOrNull("task.get", rootPayload().put("taskId", id))
+    }
+
     suspend fun deleteTask(id: String): Boolean = withContext(Dispatchers.IO) {
         Native.callOrNull("task.delete", rootPayload().put("taskId", id))
             ?.optBoolean("changed") ?: false

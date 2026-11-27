@@ -60,6 +60,12 @@ short text form:
 - `timeout` → `Tool timed out after Ns: <tool>`
 - `error` → `Tool error (<tool>): …`
 
+Shell and verification calls with a non-zero exit code or timeout are reported
+as failures; verification without a detected or explicit command also fails.
+After making workspace changes, the agent must successfully run `verify` after
+its most recent change before it can mark the task `completed`. Otherwise it
+must report a `partial` or `failed` outcome.
+
 ## Adding a tool
 
 1. Add a spec to `TOOL_SPECS`:

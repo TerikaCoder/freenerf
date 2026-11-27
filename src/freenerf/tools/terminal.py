@@ -5,11 +5,33 @@ import shutil
 import signal
 import subprocess
 import time
+from dataclasses import dataclass
 from pathlib import Path
 
 
 MAX_OUTPUT = 20_000
 MAX_TIMEOUT = 600.0
+
+
+@dataclass(frozen=True)
+class CommandResult:
+    output: str
+    exit_code: int | None
+    timed_out: bool
+    elapsed: float
+
+    @property
+    def succeeded(self) -> bool:
+        return self.exit_code == 0 and not self.timed_out
+
+    def formatted(self) -> str:
+        if self.timed_out:
+            header = "Command timed out"
+        elif self.exit_code is None:
+            header = "Command could not be run"
+        else:
+            header = f"Exit code: {self.exit_code}"
+        return f"{header} ({self.elapsed:.2f}s)\n{self.output}".rstrip()
 
 
 class Terminal:
@@ -34,18 +56,20 @@ class Terminal:
     def which(program: str) -> str | None:
         return shutil.which(program)
 
-    def run(self, command, timeout=None, cwd=None):
+    def run_result(self, command, timeout=None, cwd=None) -> CommandResult:
         command = str(command or "").strip()
         if not command:
-            return "No command provided"
+            return CommandResult("No command provided", None, False, 0.0)
 
         workdir = Path(cwd).resolve() if cwd else self.cwd
 
         if not workdir.is_dir():
-            return f"Working directory does not exist: {workdir}"
+            return CommandResult(
+                f"Working directory does not exist: {workdir}", None, False, 0.0
+            )
 
         if not workdir.is_relative_to(self.cwd):
-            return "Working directory is outside the project"
+            return CommandResult("Working directory is outside the project", None, False, 0.0)
 
         try:
             timeout_value = float(timeout) if timeout is not None else self.default_timeout
@@ -69,7 +93,7 @@ class Terminal:
                 start_new_session=True,
             )
         except OSError as exc:
-            return f"Cannot start command: {exc}"
+            return CommandResult(f"Cannot start command: {exc}", None, False, 0.0)
 
         timed_out = False
 
@@ -96,9 +120,12 @@ class Terminal:
                 + output[-MAX_OUTPUT:]
             )
 
-        if timed_out:
-            header = f"Command timed out after {timeout_value:.0f}s"
-        else:
-            header = f"Exit code: {process.returncode}"
+        return CommandResult(
+            output=output,
+            exit_code=None if timed_out else process.returncode,
+            timed_out=timed_out,
+            elapsed=elapsed,
+        )
 
-        return f"{header} ({elapsed:.2f}s)\n{output}".rstrip()
+    def run(self, command, timeout=None, cwd=None):
+        return self.run_result(command, timeout=timeout, cwd=cwd).formatted()

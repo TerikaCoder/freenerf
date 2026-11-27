@@ -192,6 +192,127 @@ fn runs_a_tool_then_finishes_with_the_answer() {
 }
 
 #[test]
+fn nonzero_shell_exit_is_reported_as_failure() {
+    let (_dir, mut agent) = agent(
+        Box::new(ScriptedProvider::new(vec![
+            tool_response("run_shell", json!({"command": "printf failed; exit 7"})),
+            ProviderResponse {
+                content: Some("The command failed.".into()),
+                ..Default::default()
+            },
+        ])),
+        Arc::new(freenerf_core::AllowAll),
+        PermissionMode::Full,
+    );
+
+    let rt = runtime();
+    rt.block_on(agent.chat("Run the command")).unwrap();
+    assert!(agent.messages().iter().any(|message| {
+        message.role == "tool"
+            && message.text().contains("Exit code: 7")
+            && message.text().contains("failed")
+    }));
+}
+
+#[test]
+fn changed_workspace_cannot_be_marked_completed_without_verification() {
+    let (_dir, mut agent) = agent(
+        Box::new(ScriptedProvider::new(vec![
+            tool_response(
+                "write_file",
+                json!({"path": "result.txt", "content": "done"}),
+            ),
+            tool_response(
+                "finish",
+                json!({"status": "completed", "summary": "done"}),
+            ),
+            ProviderResponse {
+                content: Some("The file is done.".into()),
+                ..Default::default()
+            },
+        ])),
+        Arc::new(freenerf_core::AllowAll),
+        PermissionMode::Full,
+    );
+
+    let rt = runtime();
+    let outcome = rt.block_on(agent.chat("Create a file")).unwrap();
+    assert_eq!(outcome.status, "partial");
+    assert!(agent.messages().iter().any(|message| {
+        message.role == "tool" && message.text().contains("no verification command")
+    }));
+}
+
+#[test]
+fn successful_verification_allows_completion_after_changes() {
+    let (_dir, mut agent) = agent(
+        Box::new(ScriptedProvider::new(vec![
+            tool_response(
+                "write_file",
+                json!({"path": "result.txt", "content": "done"}),
+            ),
+            tool_response(
+                "verify",
+                json!({"command": "python -c 'assert True'"}),
+            ),
+            tool_response(
+                "finish",
+                json!({"status": "completed", "summary": "verified"}),
+            ),
+        ])),
+        Arc::new(freenerf_core::AllowAll),
+        PermissionMode::Full,
+    );
+
+    let rt = runtime();
+    let outcome = rt.block_on(agent.chat("Create and verify a file")).unwrap();
+    assert_eq!(outcome.status, "completed");
+    assert_eq!(outcome.summary, "verified");
+}
+
+#[test]
+fn changes_after_verification_require_a_new_verification() {
+    let (_dir, mut agent) = agent(
+        Box::new(ScriptedProvider::new(vec![
+            tool_response(
+                "write_file",
+                json!({"path": "result.txt", "content": "first"}),
+            ),
+            tool_response(
+                "verify",
+                json!({"command": "python -c 'assert True'"}),
+            ),
+            tool_response(
+                "write_file",
+                json!({"path": "result.txt", "content": "second"}),
+            ),
+            tool_response(
+                "finish",
+                json!({"status": "completed", "summary": "done"}),
+            ),
+            tool_response(
+                "verify",
+                json!({"command": "python -c 'assert True'"}),
+            ),
+            tool_response(
+                "finish",
+                json!({"status": "completed", "summary": "verified"}),
+            ),
+        ])),
+        Arc::new(freenerf_core::AllowAll),
+        PermissionMode::Full,
+    );
+
+    let rt = runtime();
+    let outcome = rt.block_on(agent.chat("Create and verify a file")).unwrap();
+    assert_eq!(outcome.status, "completed");
+    assert_eq!(outcome.summary, "verified");
+    assert!(agent.messages().iter().any(|message| {
+        message.role == "tool" && message.text().contains("no verification command")
+    }));
+}
+
+#[test]
 fn write_permission_is_enforced_and_reported() {
     let dir = tempfile::tempdir().unwrap();
     let workspace = Arc::new(Workspace::open(dir.path(), true).unwrap());

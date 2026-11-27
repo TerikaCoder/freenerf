@@ -33,6 +33,10 @@ _JSON_TYPES = {
 class ToolError(Exception):
     """Raised by a tool handler for an expected, user-readable failure."""
 
+    def __init__(self, message, *, kind="error"):
+        super().__init__(message)
+        self.kind = kind
+
 
 @dataclass
 class ToolResult:
@@ -56,7 +60,7 @@ class ToolResult:
         if self.kind == "invalid":
             return f"Invalid tool arguments for {self.name}: {self.error}"
         if self.kind == "timeout":
-            return f"Tool timed out after {self.elapsed:.0f}s: {self.name}"
+            return self.error or f"Tool timed out after {self.elapsed:.0f}s: {self.name}"
         if self.kind == "cancelled":
             return "Cancelled by user"
         return f"Tool error ({self.name}): {self.error}"
@@ -329,7 +333,7 @@ class ToolRegistry:
             except ToolError as exc:
                 return ToolResult(
                     name=name,
-                    kind="error",
+                    kind=exc.kind,
                     error=redact(str(exc)),
                     policy=tool.policy,
                     elapsed=time.monotonic() - started,

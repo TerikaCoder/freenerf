@@ -44,6 +44,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.NorthEast
@@ -59,6 +60,8 @@ import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -68,6 +71,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -155,22 +159,24 @@ fun ChatScreen(
     // Small app bar that takes a tonal fill once the conversation scrolls under
     // it, like the M3 web shell. The title stays one line; the status line under
     // it carries a colour-coded dot so a running agent is visible at a glance.
-    val appBarScroll = TopAppBarDefaults.pinnedScrollBehavior()
+    val appBarScroll = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
+        rememberTopAppBarState(),
+    )
 
     Scaffold(
         modifier = modifier.nestedScroll(appBarScroll.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.surface,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            TopAppBar(
+            LargeTopAppBar(
                 title = {
                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(
                             text = state.title.ifBlank {
                                 if (state.items.isEmpty()) "New session" else "Session"
                             },
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Medium,
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.SemiBold,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
@@ -348,6 +354,11 @@ fun ChatScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
+                state.task?.let { task ->
+                    item(key = "task-progress") {
+                        TaskProgressCard(task)
+                    }
+                }
                 items(
                     items = state.items,
                     key = { it.id },
@@ -508,28 +519,36 @@ private fun SessionStart(workspace: String, onSuggestion: (String) -> Unit) {
 /** The instruction for this turn. A labeled block, not a messaging bubble. */
 @Composable
 private fun PromptBlock(text: String) {
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        shape = MaterialTheme.shapes.large,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Column(
-            Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+        Surface(
+            color = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            shape = RoundedCornerShape(
+                topStart = 24.dp,
+                topEnd = 8.dp,
+                bottomEnd = 24.dp,
+                bottomStart = 24.dp,
+            ),
+            modifier = Modifier.widthIn(max = 720.dp).fillMaxWidth(0.9f),
         ) {
-            Text(
-                "PROMPT",
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.SemiBold,
-                letterSpacing = 0.8.sp,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            SelectionContainer {
+            Column(
+                Modifier.padding(horizontal = 18.dp, vertical = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(5.dp),
+            ) {
                 Text(
-                    text = text,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    "YOU",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 0.8.sp,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.72f),
                 )
+                SelectionContainer {
+                    Text(
+                        text = text,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                }
             }
         }
     }
@@ -538,6 +557,32 @@ private fun PromptBlock(text: String) {
 @Composable
 private fun AssistantMessage(item: ChatItem.Assistant) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(9.dp),
+        ) {
+            Box(
+                Modifier
+                    .size(30.dp)
+                    .background(
+                        MaterialTheme.colorScheme.secondaryContainer,
+                        CircleShape,
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    Icons.Filled.AutoAwesome,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.size(16.dp),
+                )
+            }
+            Text(
+                "FreeNerf",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
         if (item.text.isNotBlank()) {
             MarkdownText(item.text, streaming = item.streaming)
         }
@@ -548,6 +593,127 @@ private fun AssistantMessage(item: ChatItem.Assistant) {
         }
         if (item.streaming) {
             RespondingPill()
+        }
+    }
+}
+
+@Composable
+private fun TaskProgressCard(task: TaskProgressUi) {
+    var expanded by rememberSaveable(task.title) { mutableStateOf(false) }
+    val color = when (task.status) {
+        "failed", "blocked" -> MaterialTheme.colorScheme.error
+        "completed" -> MaterialTheme.colorScheme.primary
+        else -> MaterialTheme.colorScheme.tertiary
+    }
+
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        shape = MaterialTheme.shapes.large,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(MaterialTheme.shapes.medium)
+                    .clickable { expanded = !expanded },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Icon(
+                    Icons.Filled.AccountTree,
+                    contentDescription = null,
+                    tint = color,
+                )
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        task.title,
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        buildString {
+                            append(task.status.replace('_', ' ').replaceFirstChar { it.uppercase() })
+                            if (task.totalSteps > 0) {
+                                append(" · ${task.doneSteps}/${task.totalSteps} steps")
+                            }
+                        },
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                if (task.status == "running") {
+                    CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                } else {
+                    Text(
+                        "${task.progress}%",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = color,
+                    )
+                }
+                Icon(
+                    if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                    contentDescription = if (expanded) "Collapse task plan" else "Expand task plan",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            if (task.totalSteps > 0) {
+                LinearProgressIndicator(
+                    progress = { task.progress / 100f },
+                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                    color = color,
+                    trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                )
+            }
+            if (expanded) {
+                Column(
+                    Modifier.padding(top = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(9.dp),
+                ) {
+                    task.steps.forEachIndexed { index, step ->
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            verticalAlignment = Alignment.Top,
+                        ) {
+                            Text(
+                                when (step.status) {
+                                    "completed" -> "✓"
+                                    "failed" -> "!"
+                                    "running" -> "•"
+                                    else -> "○"
+                                },
+                                color = if (step.status == "failed") {
+                                    MaterialTheme.colorScheme.error
+                                } else {
+                                    MaterialTheme.colorScheme.primary
+                                },
+                                style = MaterialTheme.typography.titleSmall,
+                            )
+                            Column {
+                                Text(
+                                    "${index + 1}. ${step.title}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                                if (step.detail.isNotBlank()) {
+                                    Text(
+                                        step.detail,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    if (task.summary.isNotBlank()) {
+                        Text(
+                            task.summary,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
         }
     }
 }

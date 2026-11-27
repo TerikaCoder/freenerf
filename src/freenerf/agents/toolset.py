@@ -566,13 +566,19 @@ def h_project_info(agent, args):
 
 
 def h_web_search(agent, args):
-    return agent.web_search.search(
+    result = agent.web_search.search(
         args["query"], args.get("max_results", 5)
     )
+    if result.startswith(("Web search ", "Search query is empty")):
+        raise ToolError(result)
+    return result
 
 
 def h_web_fetch(agent, args):
-    return agent.web_fetch.fetch(args["url"])
+    result = agent.web_fetch.fetch(args["url"])
+    if result.startswith(("Web fetch error:", "Web fetch blocked:", "Web fetch timed out")):
+        raise ToolError(result)
+    return result
 
 
 def h_write_file(agent, args):
@@ -595,9 +601,13 @@ def h_delete_file(agent, args):
 def h_run_shell(agent, args):
     if agent.terminal is None:
         raise ToolError("No terminal is configured")
-    return agent.terminal.run(
+    result = agent.terminal.run_result(
         args["command"], timeout=args.get("timeout")
     )
+    output = result.formatted()
+    if not result.succeeded:
+        raise ToolError(output, kind="timeout" if result.timed_out else "error")
+    return output
 
 
 def h_verify(agent, args):
@@ -611,15 +621,18 @@ def h_verify(agent, args):
         command = ProjectInspector(agent.fs.root).test_command()
 
     if not command:
-        return (
+        raise ToolError(
             "No test command was detected for this project. Pass an explicit "
             "command to verify."
         )
 
-    result = agent.terminal.run(
+    result = agent.terminal.run_result(
         command, timeout=args.get("timeout") or 300
     )
-    return f"$ {command}\n{result}"
+    output = f"$ {command}\n{result.formatted()}"
+    if not result.succeeded:
+        raise ToolError(output, kind="timeout" if result.timed_out else "error")
+    return output
 
 
 def h_git(agent, args):
@@ -679,6 +692,17 @@ def h_update_step(agent, args):
 def h_finish(agent, args):
     status = args["status"]
     summary = str(args.get("summary") or "")
+
+    if (
+        status == "completed"
+        and getattr(agent, "_changes_made", False)
+        and not getattr(agent, "_verification_passed", False)
+    ):
+        raise ToolError(
+            "Cannot mark this task completed: workspace files were changed, "
+            "but no verification command has succeeded. Run verify and inspect "
+            "its output, or finish with partial/failed."
+        )
 
     if agent.tasks is not None:
         try:

@@ -53,6 +53,20 @@ data class Usage(val input: Long = 0, val output: Long = 0, val total: Long = 0)
 }
 
 @Immutable
+data class TaskStepUi(val title: String, val status: String, val detail: String)
+
+@Immutable
+data class TaskProgressUi(
+    val title: String,
+    val status: String,
+    val summary: String,
+    val progress: Int,
+    val doneSteps: Int,
+    val totalSteps: Int,
+    val steps: List<TaskStepUi>,
+)
+
+@Immutable
 data class ChatUiState(
     val sessionId: String? = null,
     val title: String = "",
@@ -62,6 +76,7 @@ data class ChatUiState(
     val status: String = "idle",
     val error: String? = null,
     val usage: Usage = Usage(),
+    val task: TaskProgressUi? = null,
 )
 
 class ChatViewModel(private val container: AppContainer) : ViewModel() {
@@ -107,6 +122,8 @@ class ChatViewModel(private val container: AppContainer) : ViewModel() {
         viewModelScope.launch {
             val export = container.exportSession(id)
             val title = export?.optJSONObject("session")?.optString("title") ?: ""
+            val task = container.tasks(limit = 1, sessionId = id).firstOrNull()
+                ?.let(::taskProgress)
             val items = mutableListOf<ChatItem>()
             val messages = export?.optJSONArray("messages")
             if (messages != null) {
@@ -131,7 +148,11 @@ class ChatViewModel(private val container: AppContainer) : ViewModel() {
                     "This session has no messages yet. Ask something to get started.",
                 )
             }
-            _state.update { it.copy(items = items, title = title, loading = false) }
+            if (sessionId == id) {
+                _state.update {
+                    it.copy(items = items, title = title, task = task, loading = false)
+                }
+            }
         }
     }
 
@@ -144,6 +165,7 @@ class ChatViewModel(private val container: AppContainer) : ViewModel() {
                 items = it.items + ChatItem.User("user-${UUID.randomUUID()}", prompt),
                 error = null,
                 status = "thinking",
+                task = null,
             )
         }
         viewModelScope.launch {
@@ -382,6 +404,27 @@ class ChatViewModel(private val container: AppContainer) : ViewModel() {
                 )
             }
 
+            "task_started", "task_updated" -> {
+                event.optJSONObject("task")?.let { task ->
+                    _state.update { it.copy(task = taskProgress(task)) }
+                }
+            }
+
+            "task_completed" -> _state.update { state ->
+                state.copy(
+                    task = state.task?.copy(
+                        status = event.optString("status", state.task.status),
+                        summary = event.optString("summary", state.task.summary),
+                    ),
+                )
+            }
+
+            "task_failed" -> _state.update { state ->
+                state.copy(
+                    task = state.task?.copy(status = "failed", summary = event.optString("error")),
+                )
+            }
+
             "agent_status_changed" -> {
                 val busy = event.optBoolean("busy", _state.value.busy)
                 if (!busy) {
@@ -454,6 +497,33 @@ class ChatViewModel(private val container: AppContainer) : ViewModel() {
         _state.update {
             it.copy(items = it.items + ChatItem.Notice("notice-${UUID.randomUUID()}", text, isError))
         }
+    }
+
+    private fun taskProgress(task: JSONObject): TaskProgressUi {
+        val stepsJson = task.optJSONArray("steps")
+        val steps = buildList {
+            if (stepsJson != null) {
+                for (index in 0 until stepsJson.length()) {
+                    val step = stepsJson.optJSONObject(index) ?: continue
+                    add(
+                        TaskStepUi(
+                            title = step.optString("title", "Step ${index + 1}"),
+                            status = step.optString("status", "pending"),
+                            detail = step.optString("result").ifBlank { step.optString("error") },
+                        ),
+                    )
+                }
+            }
+        }
+        return TaskProgressUi(
+            title = task.optString("title", "Current task"),
+            status = task.optString("status", "running"),
+            summary = task.optString("summary"),
+            progress = task.optInt("progress").coerceIn(0, 100),
+            doneSteps = task.optInt("done_steps"),
+            totalSteps = task.optInt("step_count", steps.size),
+            steps = steps,
+        )
     }
 
     private companion object {

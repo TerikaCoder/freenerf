@@ -80,9 +80,9 @@ How to work:
    files before changing anything. Never guess file contents.
 3. For multi-step work, call set_plan with concrete steps, then keep the plan
    current with update_step (1-based numbers). Use result to record evidence.
-4. Use tools until the objective is genuinely met. Inspect every tool result;
-   when a command or test fails, read the error, form a hypothesis, fix the
-   cause, and re-run the verification.
+4. Use tools until the objective is genuinely met. Treat non-zero command
+   results as failures. Inspect every result; diagnose failures, make a
+   targeted correction, and rerun the relevant check.
 5. Verify before declaring success: run tests or at least a syntax check, and
    report exactly what was run. If verification is impossible, say why.
 6. Call finish when you stop. Statuses: completed (verified), partial (some
@@ -91,6 +91,9 @@ How to work:
    denied). Include the evidence in summary.
 7. Prefer edit_file over rewriting whole files. Read a file before editing it.
 8. Use project_info to discover the test and lint commands.
+   After changing workspace files, run verify and inspect its successful
+   result before marking the task completed. A command that merely starts or
+   prints output is not proof that it passed.
 9. When the user asks for an image, logo, illustration or visual asset, call
    generate_image with a detailed prompt. Do not only describe the image.
 10. Use web_search and web_fetch for external documentation or current facts;
@@ -228,6 +231,8 @@ class Agent:
         self.denied_count = 0
         self.awaiting_approval = False
         self._plain_mode = False
+        self._changes_made = False
+        self._verification_passed = False
 
         self.reset()
 
@@ -244,6 +249,8 @@ class Agent:
         self.tool_call_count = 0
         self.denied_count = 0
         self.awaiting_approval = False
+        self._changes_made = False
+        self._verification_passed = False
 
     def set_permission_mode(self, mode):
         self.permission_mode = normalize_mode(mode)
@@ -636,6 +643,8 @@ class Agent:
         steps = 0
         summary_turn = False
         self._summary_mode = False
+        self._changes_made = False
+        self._verification_passed = False
 
         while steps < limit or (not summary_turn and total_calls > 0):
             if steps >= limit and not summary_turn:
@@ -937,6 +946,13 @@ class Agent:
         started = time.monotonic()
 
         result = self.execute_tool_result(name, args)
+        if result.ok and name in {
+            "write_file", "edit_file", "delete_file", "ssh_write_file",
+        }:
+            self._changes_made = True
+            self._verification_passed = False
+        if result.ok and name == "verify":
+            self._verification_passed = True
 
         elapsed = time.monotonic() - started
         self.tool_call_count += 1
@@ -969,12 +985,22 @@ class Agent:
 
     # ------------------------------------------------------------------
     def _finish_without_explicit_status(self, content, steps, total_calls):
-        status = "completed"
+        status = (
+            "partial"
+            if self._changes_made and not self._verification_passed
+            else "completed"
+        )
 
         if self.tasks is not None:
             try:
                 if self.awaiting_approval:
                     task = self.tasks.finish("awaiting_approval", content)
+                elif status == "partial":
+                    task = self.tasks.finish(
+                        "partial",
+                        "Changes were made, but no successful verification was recorded. "
+                        + content,
+                    )
                 else:
                     task = self.tasks.finish_implicit(content)
                 status = (task or {}).get("status", status)

@@ -51,7 +51,8 @@ def test_invalid_provider_response(monkeypatch):
         lambda *a, **kw: MockResponse({"ok": False}),
     )
 
-    assert "invalid response" in WebSearch().search("test")
+    result = WebSearch().search("test")
+    assert "invalid response" in result
 
 
 def test_invalid_url_is_skipped(monkeypatch):

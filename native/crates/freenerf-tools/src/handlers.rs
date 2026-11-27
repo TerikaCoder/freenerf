@@ -101,9 +101,14 @@ pub fn run_shell(ctx: &ToolContext, args: &Value) -> Result<String> {
         .get("timeout")
         .and_then(|v| v.as_u64())
         .unwrap_or(120);
-    Ok(ctx
+    let result = ctx
         .shell
-        .run(&command, ctx.workspace.root(), Duration::from_secs(timeout)))
+        .run(&command, ctx.workspace.root(), Duration::from_secs(timeout));
+    let output = result.formatted();
+    if !result.succeeded() {
+        return Err(Error::Tool(output));
+    }
+    Ok(output)
 }
 
 pub fn verify(ctx: &ToolContext, args: &Value) -> Result<String> {
@@ -112,9 +117,10 @@ pub fn verify(ctx: &ToolContext, args: &Value) -> Result<String> {
         command = ctx.project.test_command();
     }
     if command.is_empty() {
-        return Ok("No test command was detected for this project. Pass an explicit command \
-                   to verify."
-            .into());
+        return Err(Error::Tool(
+            "No test command was detected for this project. Pass an explicit command to verify."
+                .into(),
+        ));
     }
 
     let timeout = args
@@ -125,7 +131,11 @@ pub fn verify(ctx: &ToolContext, args: &Value) -> Result<String> {
     let result = ctx
         .shell
         .run(&command, ctx.workspace.root(), Duration::from_secs(timeout));
-    Ok(format!("$ {command}\n{result}"))
+    let output = format!("$ {command}\n{}", result.formatted());
+    if !result.succeeded() {
+        return Err(Error::Tool(output));
+    }
+    Ok(output)
 }
 
 pub fn git(ctx: &ToolContext, args: &Value) -> Result<String> {
@@ -193,13 +203,24 @@ pub fn web_search(ctx: &ToolContext, args: &Value) -> Result<String> {
         .get("max_results")
         .and_then(|v| v.as_i64())
         .unwrap_or(5);
-    Ok(ctx
+    let result = ctx
         .web_search
-        .search(&string_arg(args, "query"), max_results))
+        .search(&string_arg(args, "query"), max_results);
+    if result.starts_with("Web search ") || result == "Search query is empty" {
+        return Err(Error::Tool(result));
+    }
+    Ok(result)
 }
 
 pub fn web_fetch(ctx: &ToolContext, args: &Value) -> Result<String> {
-    Ok(ctx.web_fetch.fetch(&string_arg(args, "url")))
+    let result = ctx.web_fetch.fetch(&string_arg(args, "url"));
+    if result.starts_with("Web fetch error:")
+        || result.starts_with("Web fetch blocked:")
+        || result.starts_with("Web fetch timed out")
+    {
+        return Err(Error::Tool(result));
+    }
+    Ok(result)
 }
 
 pub fn generate_image(ctx: &ToolContext, args: &Value) -> Result<String> {
