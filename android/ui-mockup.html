@@ -64,6 +64,7 @@
   .appbar .sub{margin:2px 0 0;font-size:11.5px;color:var(--on-surface-variant);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:5px}
   .appbar .sub .dot{width:5px;height:5px;border-radius:50%;background:var(--primary)}
+  .appbar .sub .dot.idle{background:var(--outline)}
   .ibtn{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:var(--on-surface-variant);flex:0 0 auto}
   .ibtn.primary{color:var(--primary)}
   .ibtn svg{width:21px;height:21px}
@@ -85,12 +86,13 @@
     color:#243029;overflow:hidden}
   .code .k{color:#7A4E9B}.code .s{color:#2E7D4F}.code .c{color:#7C8A80}
 
-  .tool{background:var(--surface-low);border-radius:20px;padding:10px 12px}
+  .tool{background:var(--surface-low);border-radius:16px;padding:10px 12px}
   .tool .head{display:flex;align-items:center;gap:10px}
-  .tool .ico{width:26px;height:26px;border-radius:9px;background:var(--surface-highest);display:grid;place-items:center;flex:0 0 auto}
-  .tool .ico svg{width:15px;height:15px}
-  .tool .ico.done{color:var(--primary)}
-  .tool .ico.fail{color:var(--error)}
+  .tool .ico{width:32px;height:32px;border-radius:10px;background:var(--surface-highest);display:grid;place-items:center;flex:0 0 auto}
+  .tool .ico svg{width:17px;height:17px}
+  .tool .ico.done{background:var(--surface-highest);color:var(--primary)}
+  .tool .ico.run{background:var(--tertiary-container);color:var(--on-tertiary-container)}
+  .tool .ico.fail{background:var(--error-container);color:var(--on-error-container)}
   .tool .name{flex:1;font-family:"Roboto Mono",ui-monospace,monospace;font-size:12.5px;font-weight:500;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .tool .time{font-size:11px;color:var(--on-surface-variant)}
@@ -108,8 +110,11 @@
 
   /* composer */
   .composer{flex:0 0 auto;padding:8px 12px 10px;background:var(--surface)}
-  .usage{font-size:10.5px;color:var(--on-surface-variant);padding:0 8px 6px}
-  .fieldbox{display:flex;align-items:flex-end;gap:4px;background:var(--surface-high);border-radius:28px;padding:5px}
+  .metarow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 8px 6px}
+  .usage{font-size:10.5px;color:var(--on-surface-variant);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mode{font-size:10.5px;font-weight:700;letter-spacing:1px;color:var(--primary);white-space:nowrap}
+  .fieldbox{display:flex;align-items:flex-end;gap:4px;background:var(--surface-high);border-radius:32px;padding:5px;border:2px solid transparent}
+  .fieldbox.focus{border-color:var(--primary)}
   .fieldbox .placeholder{flex:1;font-size:14px;color:#5F6C64;padding:12px 2px 12px 4px}
   .textarea-mock{flex:1;padding:10px 4px 10px 4px;font-size:14px;line-height:1.45;color:var(--on-surface)}
   .fab-mini{width:44px;height:44px;border-radius:50%;background:var(--primary);color:#fff;display:grid;place-items:center;flex:0 0 auto}
@@ -132,13 +137,14 @@
   /* sessions */
   .meta-row{display:flex;align-items:center;justify-content:space-between;padding:2px 20px 8px}
   .meta-row .count{font-size:12.5px;font-weight:500;color:var(--on-surface-variant)}
+  .chips3{display:flex;gap:6px}
   .chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--outline-variant);
     border-radius:9px;padding:6px 12px;font-size:12.5px;font-weight:500;color:var(--on-surface)}
   .chip.sel{background:var(--secondary-container);border-color:transparent;color:var(--on-secondary-container)}
   .chip svg{width:15px;height:15px}
   .cards{flex:1;overflow:hidden;padding:0 16px;display:flex;flex-direction:column;gap:10px}
   .card{background:var(--surface-low);border-radius:24px;padding:12px 4px 12px 14px;display:flex;align-items:center;gap:14px}
-  .card .tile{width:46px;height:46px;border-radius:16px;background:var(--secondary-container);
+  .card .tile{width:44px;height:44px;border-radius:14px;background:var(--secondary-container);
     color:var(--on-secondary-container);display:grid;place-items:center;flex:0 0 auto}
   .card .tile svg{width:22px;height:22px}
   .card .txt{flex:1;min-width:0}
@@ -149,7 +155,7 @@
   .card .sub2.closed{color:var(--tertiary)}
   .card .more{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:var(--on-surface-variant);flex:0 0 auto}
   .card .more svg{width:19px;height:19px}
-  .fab-wrap{position:absolute;right:16px;bottom:76px}
+  .fab-wrap{position:absolute;right:18px;bottom:96px}
   .fab{display:inline-flex;align-items:center;gap:8px;background:var(--primary-container);
     color:var(--on-primary-container);border-radius:18px;padding:16px 20px;font-size:14px;font-weight:600;
     box-shadow:0 6px 18px rgba(18,32,24,.18)}
@@ -157,18 +163,25 @@
 
   /* empty chat */
   .empty{flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 24px 12px;text-align:center}
-  .hero{width:84px;height:84px;border-radius:28px;background:var(--primary-container);
+  .hero{width:88px;height:88px;border-radius:28px;background:var(--primary-container);
     color:var(--on-primary-container);display:grid;place-items:center;margin:0 auto 18px}
-  .hero svg{width:36px;height:36px}
+  .hero svg{width:38px;height:38px}
   .empty h3{margin:0;font-size:24px;font-weight:600;letter-spacing:-.1px}
   .empty p{margin:6px 0 20px;font-size:13.5px;line-height:1.5;color:var(--on-surface-variant)}
-  .sugg{background:var(--surface-low);border-radius:22px;padding:14px 16px;display:flex;
-    align-items:center;gap:12px;font-size:13.5px;text-align:left;margin-bottom:8px}
-  .sugg span{flex:1}
-  .sugg svg{width:18px;height:18px;color:var(--primary);flex:0 0 auto}
+  .sugg{background:var(--surface-low);border-radius:16px;padding:13px 16px;display:flex;
+    align-items:center;gap:12px;text-align:left;margin-bottom:8px}
+  .sugg .lead{width:20px;height:20px;color:var(--primary);flex:0 0 auto}
+  .sugg .txt2{flex:1;min-width:0}
+  .sugg .txt2 b{display:block;font-size:13.5px;font-weight:500;line-height:1.3}
+  .sugg .txt2 small{display:block;font-size:11px;color:var(--on-surface-variant);margin-top:2px}
+  .sugg .north{width:18px;height:18px;color:var(--on-surface-variant);flex:0 0 auto}
 
   /* settings */
-  .chips-row{display:flex;gap:8px;padding:4px 16px 12px;overflow:hidden}
+  .tabs{display:flex;gap:2px;padding:0 8px;overflow:hidden;border-bottom:1px solid var(--surface-highest);flex:0 0 auto}
+  .scroll{padding-top:12px}
+  .tab{position:relative;padding:13px 14px 18px;font-size:13px;font-weight:500;color:var(--on-surface-variant);white-space:nowrap}
+  .tab.on{color:var(--primary);font-weight:600}
+  .tab.on:after{content:"";position:absolute;left:13px;right:13px;bottom:6px;height:3px;border-radius:3px;background:var(--primary)}
   .scroll{flex:1;overflow:hidden;padding:0 16px 16px;display:flex;flex-direction:column;gap:12px}
   .group{background:var(--surface-low);border-radius:24px;padding:16px}
   .group h4{margin:0 0 12px;font-size:12.5px;font-weight:700;letter-spacing:.2px;color:var(--primary)}
@@ -232,7 +245,7 @@
       <div class="appbar">
         <div class="titles">
           <h2>Fix the failing parser test</h2>
-          <p class="sub"><span class="dot"></span>responding · projects/api</p>
+          <p class="sub"><span class="dot"></span>Responding · projects/api</p>
         </div>
         <div class="ibtn" title="Session history">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 3a9 9 0 1 0 8.8 11h-2.1A7 7 0 1 1 13 5v3l4.5-4L13 0v3zM12 8v5l4 2 .8-1.4-3.3-2V8H12z"/></svg>
@@ -260,16 +273,6 @@
           <p class="summary">npm test -- parser.spec.ts · 1 failing: nested arrays keep the outer index</p>
         </div>
 
-        <div class="tool">
-          <div class="head">
-            <div class="ico done"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.6 17.6 4 12l1.4-1.4 4.2 4.2 9-9L20 7.2l-10.4 10.4z"/></svg></div>
-            <div class="name">read_file</div>
-            <div class="time">0.3s</div>
-            <div class="chev"><svg viewBox="0 0 24 24" fill="currentColor"><path d="m7 10 5 5 5-5z"/></svg></div>
-          </div>
-          <p class="summary">src/parser.ts · lines 41–96</p>
-        </div>
-
         <div class="agent">
           <p>The array branch reuses the parent index:</p>
           <div class="code"><span class="c">// src/parser.ts · 68</span><br/>
@@ -278,21 +281,14 @@
             }</div>
         </div>
 
-        <div class="tool">
-          <div class="head">
-            <div class="ico done"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.6 17.6 4 12l1.4-1.4 4.2 4.2 9-9L20 7.2l-10.4 10.4z"/></svg></div>
-            <div class="name">write_file</div>
-            <div class="time">0.2s</div>
-            <div class="chev"><svg viewBox="0 0 24 24" fill="currentColor"><path d="m7 10 5 5 5-5z"/></svg></div>
-          </div>
-          <p class="summary">src/parser.ts · 1 line changed, backup saved</p>
-        </div>
-
-        <div class="statusline"><span class="spinner"></span>verifying with the suite…</div>
+        <div class="statusline"><span class="spinner"></span>Responding</div>
       </div>
 
       <div class="composer">
-        <div class="usage">in 8 412 · out 1 905 · total 10 317</div>
+        <div class="metarow">
+          <div class="usage">in 8 412 · out 1 905 · total 10 317</div>
+          <div class="mode">ASK FIRST</div>
+        </div>
         <div class="fieldbox">
           <div class="ibtn round" title="Attach file"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 6v11.5a4 4 0 0 1-8 0V6a2.75 2.75 0 1 1 5.5 0v10.5a1.5 1.5 0 0 1-3 0V7H9.5v9.5a3 3 0 0 0 6 0V6a4.25 4.25 0 0 0-8.5 0v11.5a5.5 5.5 0 0 0 11 0V6h-1.5z"/></svg></div>
           <div class="placeholder">Describe a task…</div>
@@ -307,7 +303,7 @@
       </div>
       <div class="gesturebar"><i></i></div>
     </div></div>
-    <div class="note">The live conversation: prompt as a labelled block, the answer as plain document text, tool calls as tonal cards, and one rounded composer. No avatars or message bubbles.</div>
+    <div class="note">The live conversation: a status line under the title, prompt as a labelled block, the answer as plain document text, tool calls as tonal cards with status tiles, and one rounded composer with its usage and permission mode.</div>
   </div>
 
   <!-- CHAT: empty -->
@@ -323,7 +319,7 @@
       <div class="appbar">
         <div class="titles">
           <h2>New session</h2>
-          <p class="sub">workspace · projects/api</p>
+          <p class="sub"><span class="dot idle"></span>Ready · projects/api</p>
         </div>
         <div class="ibtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 3a9 9 0 1 0 8.8 11h-2.1A7 7 0 1 1 13 5v3l4.5-4L13 0v3zM12 8v5l4 2 .8-1.4-3.3-2V8H12z"/></svg></div>
         <div class="ibtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg></div>
@@ -333,14 +329,34 @@
         <div class="hero"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2z"/></svg></div>
         <h3>New session</h3>
         <p>Describe the task. The agent reads, edits and runs tools inside your workspace.</p>
-        <div class="sugg"><span>Summarize this workspace</span><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 17 17 7m0 0H9m8 0v8" stroke="currentColor" stroke-width="1.8" fill="none"/></svg></div>
-        <div class="sugg"><span>Find and fix a failing test</span><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 17 17 7m0 0H9m8 0v8" stroke="currentColor" stroke-width="1.8" fill="none"/></svg></div>
-        <div class="sugg"><span>Write a README for this project</span><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 17 17 7m0 0H9m8 0v8" stroke="currentColor" stroke-width="1.8" fill="none"/></svg></div>
-        <div class="sugg"><span>Explain the project structure</span><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 17 17 7m0 0H9m8 0v8" stroke="currentColor" stroke-width="1.8" fill="none"/></svg></div>
+        <div class="sugg">
+          <svg class="lead" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.9 5.6 5.6 1.9-5.6 1.9L12 17l-1.9-5.6L4.5 9.5l5.6-1.9L12 2zm7 12l1 2.9 2.9 1-2.9 1-1 2.9-1-2.9-2.9-1 2.9-1 1-2.9z"/></svg>
+          <div class="txt2"><b>Summarize this workspace</b><small>Read the tree and explain it</small></div>
+          <svg class="north" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 17 17 7m0 0H9m8 0v8"/></svg>
+        </div>
+        <div class="sugg">
+          <svg class="lead" viewBox="0 0 24 24" fill="currentColor"><path d="M21.7 18.6 13.9 10.8a5.5 5.5 0 0 0-6.9-6.9l3.4 3.4-2.8 2.8L3.2 6.7a5.5 5.5 0 0 0 6.9 6.9l7.8 7.8 3.8-2.8z"/></svg>
+          <div class="txt2"><b>Find and fix a failing test</b><small>Reproduce, patch, verify</small></div>
+          <svg class="north" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 17 17 7m0 0H9m8 0v8"/></svg>
+        </div>
+        <div class="sugg">
+          <svg class="lead" viewBox="0 0 24 24" fill="currentColor"><path d="M6 2h8l4 4v16H6V2zm7 1.4V7h3.6L13 3.4zM8 11h8v1.6H8V11zm0 3.4h8V16H8v-1.6z"/></svg>
+          <div class="txt2"><b>Write a README for this project</b><small>Document the entry points</small></div>
+          <svg class="north" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 17 17 7m0 0H9m8 0v8"/></svg>
+        </div>
+        <div class="sugg">
+          <svg class="lead" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h7v3h2V4h7v7h-7V9H6v2h5v2H6v2h5v2H4v-7h2V7H4V4z"/></svg>
+          <div class="txt2"><b>Explain the project structure</b><small>Map modules and their roles</small></div>
+          <svg class="north" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 17 17 7m0 0H9m8 0v8"/></svg>
+        </div>
       </div>
 
       <div class="composer">
-        <div class="fieldbox">
+        <div class="metarow">
+          <div class="usage">No tokens used yet</div>
+          <div class="mode">ASK FIRST</div>
+        </div>
+        <div class="fieldbox focus">
           <div class="ibtn round"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 6v11.5a4 4 0 0 1-8 0V6a2.75 2.75 0 1 1 5.5 0v10.5a1.5 1.5 0 0 1-3 0V7H9.5v9.5a3 3 0 0 0 6 0V6a4.25 4.25 0 0 0-8.5 0v11.5a5.5 5.5 0 0 0 11 0V6h-1.5z"/></svg></div>
           <div class="textarea-mock">Add rate limiting to the upload route</div>
           <div class="fab-mini"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 20v-6l8-2-8-2V4l19 8-19 8z"/></svg></div>
@@ -350,11 +366,11 @@
       <div class="navbar">
         <div class="navitem on"><div class="ind"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2z"/></svg></div><span>Chat</span></div>
         <div class="navitem"><div class="ind"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v3H3V5zm0 5.5h18v3H3v-3zM3 16h12v3H3v-3z"/></svg></div><span>Sessions</span></div>
-        <div class="navitem"><div class="ind"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/></svg></div><span>Settings</span></div>
+        <div class="navitem"><div class="ind"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zm9.4 3.5c0 .5 0 1-.1 1.5l2 1.5-2 3.5-2.4-1a8 8 0 0 1-2.6 1.5L16 21h-4l-.3-2.5A8 8 0 0 1 9 17l-2.4 1-2-3.5 2-1.5a10 10 0 0 1 0-3l-2-1.5 2-3.5 2.4 1A8 8 0 0 1 11.6 4L12 1.5h4l.3 2.5A8 8 0 0 1 19 5.5l2.4-1 2 3.5-2 1.5c.1.5.1 1 .1 1.5z"/></svg></div><span>Settings</span></div>
       </div>
       <div class="gesturebar"><i></i></div>
     </div></div>
-    <div class="note">The first prompt creates the session; there is no empty session row waiting in history. Suggestions fill the composer-style field.</div>
+    <div class="note">The first prompt creates the session; there is no empty session row waiting in history. Suggestions carry an icon and a one-line hint, and the field shows its focus ring.</div>
   </div>
 
   <!-- SESSIONS -->
@@ -373,8 +389,12 @@
       </div>
 
       <div class="meta-row">
-        <span class="count">4 sessions</span>
-        <span class="chip sel"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v2.6H3V5zm0 5.7h12v2.6H3v-2.6zM3 16.4h18v2.6H3v-2.6z"/></svg>Closed too</span>
+        <span class="count">5 sessions</span>
+        <div class="chips3">
+          <span class="chip sel"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.6 17.6 4 12l1.4-1.4 4.2 4.2 9-9L20 7.2 10.4 17.6z"/></svg>All</span>
+          <span class="chip">Open</span>
+          <span class="chip">Closed</span>
+        </div>
       </div>
 
       <div class="cards">
@@ -410,11 +430,11 @@
       <div class="navbar">
         <div class="navitem"><div class="ind"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2z"/></svg></div><span>Chat</span></div>
         <div class="navitem on"><div class="ind"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v3H3V5zm0 5.5h18v3H3v-3zM3 16h12v3H3v-3z"/></svg></div><span>Sessions</span></div>
-        <div class="navitem"><div class="ind"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/></svg></div><span>Settings</span></div>
+        <div class="navitem"><div class="ind"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zm9.4 3.5c0 .5 0 1-.1 1.5l2 1.5-2 3.5-2.4-1a8 8 0 0 1-2.6 1.5L16 21h-4l-.3-2.5A8 8 0 0 1 9 17l-2.4 1-2-3.5 2-1.5a10 10 0 0 1 0-3l-2-1.5 2-3.5 2.4 1A8 8 0 0 1 11.6 4L12 1.5h4l.3 2.5A8 8 0 0 1 19 5.5l2.4-1 2 3.5-2 1.5c.1.5.1 1 .1 1.5z"/></svg></div><span>Settings</span></div>
       </div>
       <div class="gesturebar"><i></i></div>
     </div></div>
-    <div class="note">Tapping a card opens it in Chat. The overflow menu renames, closes or deletes a session; "Closed too" reveals archived runs.</div>
+    <div class="note">Tapping a card opens it in Chat. The overflow menu renames, closes or deletes a session; the All / Open / Closed chips narrow the list, as on the web list.</div>
   </div>
 
   <!-- SETTINGS -->
@@ -429,11 +449,11 @@
 
       <div class="appbar" style="padding-left:20px"><div class="titles"><h2 style="font-size:22px">Settings</h2></div></div>
 
-      <div class="chips-row">
-        <span class="chip sel">General</span>
-        <span class="chip">Appearance</span>
-        <span class="chip">Providers</span>
-        <span class="chip">Models</span>
+      <div class="tabs">
+        <span class="tab on">General</span>
+        <span class="tab">Appearance</span>
+        <span class="tab">Providers</span>
+        <span class="tab">Models</span>
       </div>
 
       <div class="scroll">
@@ -484,11 +504,11 @@
       <div class="navbar">
         <div class="navitem"><div class="ind"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2z"/></svg></div><span>Chat</span></div>
         <div class="navitem"><div class="ind"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v3H3V5zm0 5.5h18v3H3v-3zM3 16h12v3H3v-3z"/></svg></div><span>Sessions</span></div>
-        <div class="navitem on"><div class="ind"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/></svg></div><span>Settings</span></div>
+        <div class="navitem on"><div class="ind"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zm9.4 3.5c0 .5 0 1-.1 1.5l2 1.5-2 3.5-2.4-1a8 8 0 0 1-2.6 1.5L16 21h-4l-.3-2.5A8 8 0 0 1 9 17l-2.4 1-2-3.5 2-1.5a10 10 0 0 1 0-3l-2-1.5 2-3.5 2.4 1A8 8 0 0 1 11.6 4L12 1.5h4l.3 2.5A8 8 0 0 1 19 5.5l2.4-1 2 3.5-2 1.5c.1.5.1 1 .1 1.5z"/></svg></div><span>Settings</span></div>
       </div>
       <div class="gesturebar"><i></i></div>
     </div></div>
-    <div class="note">The CLI's Settings Center as filter chips: General, Appearance, Providers, Models, Keys, Permissions, Workspace, SSH, About.</div>
+    <div class="note">The CLI's Settings Center as primary scrollable tabs: General, Appearance, Providers, Models, Keys, Permissions, Workspace, SSH, About.</div>
   </div>
 
   <!-- APPROVAL DIALOG -->
@@ -502,7 +522,7 @@
       </span></div>
 
       <div class="appbar">
-        <div class="titles"><h2>Fix the failing parser test</h2><p class="sub">projects/api</p></div>
+        <div class="titles"><h2>Fix the failing parser test</h2><p class="sub"><span class="dot"></span>Waiting for approval · projects/api</p></div>
         <div class="ibtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg></div>
       </div>
 
@@ -511,7 +531,7 @@
         <div class="agent"><p>I need to pull the latest branch before editing.</p></div>
         <div class="tool">
           <div class="head">
-            <div class="ico"><div class="spinner" style="width:14px;height:14px"></div></div>
+            <div class="ico run"><div class="spinner" style="width:14px;height:14px"></div></div>
             <div class="name">run_shell</div>
             <div class="chev"><svg viewBox="0 0 24 24" fill="currentColor"><path d="m7 10 5 5 5-5z"/></svg></div>
           </div>

@@ -284,6 +284,26 @@ runtime it uses in [`native/`](native/). The Python CLI/TUI is unchanged; the
 app reimplements the same agent loop, providers, tools, permissions, sessions
 and tasks in Rust and drives them from Kotlin over JNI.
 
+<p align="center">
+  <img src="docs/images/android-chat.png" width="200" alt="Chat running a session: status line under the title, a tool card with its status tile, the Responding pill and the composer" />
+  <img src="docs/images/android-first-prompt.png" width="200" alt="A new session: suggestions with hints and a composer field with its focus ring" />
+  <img src="docs/images/android-sessions.png" width="200" alt="Session history with All, Open and Closed filter chips" />
+  <img src="docs/images/android-settings.png" width="200" alt="Settings with primary category tabs above grouped settings" />
+</p>
+
+Left to right: **Chat** during a run — the title's status line reads `Responding`
+with the workspace, the tool card carries a status tile, the turn shows the
+tonal `Responding` pill, and the composer puts token usage and the permission
+mode on a meta row over a tonal field. **New session** — four suggestions with
+an icon and a one-line hint, and the primary focus ring on the composer.
+**Sessions** — a count and the All / Open / Closed filters above tonal cards
+with 44 dp icon tiles. **Settings** — the nine categories as primary scrollable
+tabs over grouped settings.
+
+These are renders of [`android/ui-mockup.html`](android/ui-mockup.html), the
+static HTML drawing of the Compose screens kept in step with the app; they are
+not screenshots from a device.
+
 What the app provides:
 
 - A responsive Material 3 Expressive interface: phones use a bottom navigation
