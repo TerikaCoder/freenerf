@@ -16,15 +16,6 @@ There are two front ends, and they share the same behaviour:
 - **The Android app(beta)** — Kotlin/Jetpack Compose UI over a Rust agent runtime in
   `native/`, built with Gradle and packaged as an APK.
 
-```
- ██████╗ ██████╗ ███████╗███████╗███╗   ██╗███████╗██████╗ ███████╗
- ██╔══██╗██╔══██╗██╔════╝██╔════╝████╗  ██║██╔════╝██╔══██╗██╔════╝
- ██████╔╝██████╔╝█████╗  █████╗  ██╔██╗ ██║█████╗  ██████╔╝█████╗
- ██╔═══╝ ██╔══██╗██╔══╝  ██╔══╝  ██║╚██╗██║██╔══╝  ██╔══██╗██╔══╝
- ██║     ██║  ██║███████╗███████╗██║ ╚████║███████╗██║  ██║██║
- ╚═╝     ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝╚═╝
-```
-
 ## What it does
 
 - **Autonomous execution loop** — investigate, plan, act, inspect, retry, verify,
@@ -57,6 +48,8 @@ There are two front ends, and they share the same behaviour:
 - **Workflow shortcuts** — `@path/to/file` attaches a text file from the active
   workspace; `!command` runs shell through the permission system; `Alt+↑/↓`
   browses prompt history; `/export` saves the conversation as Markdown.
+
+# What it actually have:
 
 ## Built-in toolset
 
