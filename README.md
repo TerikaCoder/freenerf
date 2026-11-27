@@ -1,3 +1,6 @@
+<p align="center">
+  <img src="docs/a_clean_white_background_logo_image_a_simple_flat(1).png" alt="FreeNerf" width="520">
+</p>
 # Freenerf
 
 Autonomous, multi-provider AI coding agent. It runs as a terminal UI — built
